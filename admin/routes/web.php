@@ -20,6 +20,9 @@ Route::middleware(['auth'])->prefix('admin')->name('admin.')->group(function () 
     // Продукты
     Route::resource('products', \App\Http\Controllers\Admin\ProductController::class);
 
+    // Модификаторы
+    Route::resource('modifier-groups', \App\Http\Controllers\Admin\ModifierGroupController::class);
+
     // Здесь добавятся другие routes: orders
 });
 
