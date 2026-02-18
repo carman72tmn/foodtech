@@ -70,10 +70,4 @@ class User extends Authenticatable
     {
         return $this->hasRole(Role::OPERATOR);
     }
-
-    public function canAccessPanel(Panel $panel): bool
-    {
-        // Все пользователи с ролью могут войти в панель
-        return $this->role_id !== null;
-    }
 }
