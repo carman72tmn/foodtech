@@ -21,7 +21,14 @@ class AppServiceProvider extends ServiceProvider
     {
         if ($this->app->environment('production')) {
             \Illuminate\Support\Facades\URL::forceScheme('https');
-            \Illuminate\Support\Facades\URL::forceRootUrl(config('app.url'));
+            \Illuminate\Support\Facades\URL::forceRootUrl('https://vezuroll.ru');
+
+            // Debug logging
+            \Illuminate\Support\Facades\Log::info('Booting AppServiceProvider', [
+                'scheme' => request()->getScheme(),
+                'secure' => request()->secure(),
+                'url' => config('app.url'),
+            ]);
         }
     }
 }

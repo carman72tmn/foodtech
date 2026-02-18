@@ -52,7 +52,7 @@ class AdminPanelProvider extends PanelProvider
             // Кастомные стили (без Vite — прямое подключение)
             ->renderHook(
                 'panels::head.end',
-                fn () => '<link rel="stylesheet" href="/css/admin-theme.css">',
+                fn () => new \Illuminate\Support\HtmlString('<link rel="stylesheet" href="' . asset('css/admin-theme.css') . '">'),
             )
 
             // Боковая панель
