@@ -42,7 +42,10 @@ async def create_order(order_in: OrderCreate):
     except ValueError as e:
         raise HTTPException(status_code=400, detail=str(e))
     except Exception as e:
-        raise HTTPException(status_code=500, detail="Internal Server Error")
+        import logging
+        logger = logging.getLogger(__name__)
+        logger.error(f"Error creating order: {e}", exc_info=True)
+        raise HTTPException(status_code=500, detail=f"Internal Server Error: {str(e)}")
 
 from app.core.database import async_session
 from sqlmodel import select

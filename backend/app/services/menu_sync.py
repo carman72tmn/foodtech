@@ -263,7 +263,3 @@ class MenuSynchronizer:
 if __name__ == "__main__":
     synchronizer = MenuSynchronizer()
     asyncio.run(synchronizer.sync_menu())
-
-if __name__ == "__main__":
-    synchronizer = MenuSynchronizer()
-    asyncio.run(synchronizer.sync_menu())
