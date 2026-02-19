@@ -62,8 +62,8 @@
 ssh root@your-server-ip
 
 # 2. Скачайте проект
-git clone https://github.com/carman72tmn/dovezu.git
-cd dovezu
+git clone https://github.com/carman72tmn/foodtech.git
+cd foodtech
 
 # 3. Настройте окружение
 cp .env.production .env
@@ -112,10 +112,10 @@ sudo mkdir -p /opt/foodtech
 cd /opt/foodtech
 
 # Клонирование
-git clone https://github.com/carman72tmn/dovezu.git .
+git clone https://github.com/carman72tmn/foodtech.git .
 
 # Или если уже скачали в другое место
-cd ~/dovezu
+cd ~/foodtech
 sudo cp -r . /opt/foodtech/
 ```
 
@@ -285,7 +285,7 @@ sudo systemctl enable nginx
 ```bash
 sudo mkdir -p /opt/foodtech
 cd /opt/foodtech
-sudo git clone https://github.com/carman72tmn/dovezu.git .
+sudo git clone https://github.com/carman72tmn/foodtech.git .
 ```
 
 ### Шаг 10: Запуск установки
@@ -801,8 +801,8 @@ sudo lsof -i :443
 - [iiko API Documentation](https://api-ru.iiko.services/docs)
 
 ### GitHub
-- Issues: https://github.com/carman72tmn/dovezu/issues
-- Discussions: https://github.com/carman72tmn/dovezu/discussions
+- Issues: https://github.com/carman72tmn/foodtech/issues
+- Discussions: https://github.com/carman72tmn/foodtech/discussions
 
 ---
 

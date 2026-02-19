@@ -71,8 +71,8 @@
 
 ```bash
 # Скачайте проект
-git clone https://github.com/carman72tmn/dovezu.git
-cd dovezu
+git clone https://github.com/carman72tmn/foodtech.git
+cd foodtech
 
 # Настройте .env файл
 cp .env.production .env
@@ -110,8 +110,8 @@ sudo bash auto-install.sh
 
 ```bash
 # 1. Клонируйте репозиторий
-git clone https://github.com/carman72tmn/dovezu.git
-cd dovezu
+git clone https://github.com/carman72tmn/foodtech.git
+cd foodtech
 
 # 2. Настройте окружение
 cp .env.production .env
@@ -148,7 +148,7 @@ sudo bash install-fresh.sh
 ## 📁 Структура проекта
 
 ```
-dovezu/
+foodtech/
 ├── admin/                  # Laravel Admin Panel (Filament 3)
 │   ├── app/               # Приложение Laravel
 │   ├── config/            # Конфигурация

@@ -30,7 +30,7 @@ mkdir -p "$PROJECT_DIR"
 
 # 3. Клонирование
 echo "⬇️ [3/8] Клонирование репозитория..."
-git clone https://github.com/dovezukatmn/foodtech.git /opt/foodtech/src
+git clone https://github.com/carman72tmn/foodtech.git /opt/foodtech/src
 cp -r /opt/foodtech/src/admin/* "$PROJECT_DIR/"
 rm -rf /opt/foodtech/src
 cd "$PROJECT_DIR"
