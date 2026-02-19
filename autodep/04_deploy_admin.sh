@@ -17,9 +17,9 @@ MAGENTA='\033[0;35m'
 NC='\033[0m' # No Color
 
 # Параметры
-INSTALL_DIR="$HOME/foodtech"
+INSTALL_DIR="/opt/foodtech"
 ADMIN_DIR="$INSTALL_DIR/admin-panel"
-CONFIG_FILE="$HOME/foodtech/config/database.conf"
+CONFIG_FILE="/opt/foodtech/config/database.conf"
 
 # Логирование
 LOG_FILE="/var/log/foodtech-install.log"

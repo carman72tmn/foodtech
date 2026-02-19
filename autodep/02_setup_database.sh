@@ -253,7 +253,7 @@ save_config() {
     print_subheader "Сохранение конфигурации"
 
     # Создаем директорию для конфигурации
-    CONFIG_DIR="$HOME/foodtech/config"
+    CONFIG_DIR="/opt/foodtech/config"
     mkdir -p "$CONFIG_DIR"
 
     # Сохраняем параметры подключения

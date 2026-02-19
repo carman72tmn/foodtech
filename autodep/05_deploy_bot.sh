@@ -17,7 +17,7 @@ MAGENTA='\033[0;35m'
 NC='\033[0m' # No Color
 
 # Параметры
-INSTALL_DIR="$HOME/foodtech"
+INSTALL_DIR="/opt/foodtech"
 BOT_DIR="$INSTALL_DIR/bot"
 VENV_DIR="$BOT_DIR/venv"
 
