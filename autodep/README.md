@@ -16,12 +16,13 @@
 ### Список скриптов (по порядку выполнения)
 
 1. **00_install_nano.sh** - Установка текстового редактора nano
-2. **01_prepare_server.sh** - Подготовка сервера и установка ПО
-3. **02_setup_database.sh** - Настройка базы данных PostgreSQL
-4. **03_deploy_backend.sh** - Развертывание Backend API
-5. **04_deploy_admin.sh** - Развертывание Admin Panel
-6. **05_deploy_bot.sh** - Развертывание Telegram Bot
-7. **06_verify_system.sh** - Проверка работоспособности системы
+2. **install_postgresql.sh** - Автоматическая установка PostgreSQL (независимый установщик)
+3. **01_prepare_server.sh** - Подготовка сервера и установка ПО
+4. **02_setup_database.sh** - Настройка базы данных PostgreSQL
+5. **03_deploy_backend.sh** - Развертывание Backend API
+6. **04_deploy_admin.sh** - Развертывание Admin Panel
+7. **05_deploy_bot.sh** - Развертывание Telegram Bot
+8. **06_verify_system.sh** - Проверка работоспособности системы
 
 ## 📦 Требования
 
@@ -72,17 +73,37 @@ sudo apt install -y git
 
 ```bash
 # Создайте директорию для проекта
-sudo mkdir -p /opt/foodtech
+sudo mkdir -p ~/foodtech
 
 # Перейдите в директорию
-cd /opt/foodtech
+cd ~/foodtech
 
 # Клонируйте репозиторий
 sudo git clone https://github.com/carman72tmn/foodtech.git .
 
 # Или если у вас уже есть код локально, скопируйте его на сервер:
-# scp -r /path/to/foodtech root@your-server-ip:/opt/foodtech
+# scp -r /path/to/foodtech root@your-server-ip:~/foodtech
 ```
+
+### Альтернатива: Установка только PostgreSQL
+
+Если вам нужен только PostgreSQL (например, для использования на другом сервере), используйте отдельный установщик:
+
+```bash
+cd ~/foodtech/autodep
+sudo chmod +x install_postgresql.sh
+sudo ./install_postgresql.sh
+```
+
+**Что устанавливается:**
+- PostgreSQL 15+
+- Настройка службы и автозапуска
+- Опциональная настройка удаленного доступа
+- Опциональная настройка firewall для порта 5432
+
+**Время выполнения:** 3-5 минут
+
+**Примечание:** Этот скрипт является автономным и может использоваться независимо от других установщиков FoodTech.
 
 ## 🚀 Процесс установки
 
@@ -95,7 +116,7 @@ sudo git clone https://github.com/carman72tmn/foodtech.git .
 Если на сервере нет текстового редактора nano:
 
 ```bash
-cd /opt/foodtech/autodep
+cd ~/foodtech/autodep
 sudo chmod +x 00_install_nano.sh
 sudo ./00_install_nano.sh
 ```
@@ -105,7 +126,7 @@ sudo ./00_install_nano.sh
 Установка всех необходимых компонентов:
 
 ```bash
-cd /opt/foodtech/autodep
+cd ~/foodtech/autodep
 sudo chmod +x 01_prepare_server.sh
 sudo ./01_prepare_server.sh
 ```
@@ -236,7 +257,7 @@ sudo ./06_verify_system.sh
 ⚠️ **Внимание:** Этот вариант запускает все скрипты подряд. Вам потребуется вводить данные в интерактивном режиме.
 
 ```bash
-cd /opt/foodtech/autodep
+cd ~/foodtech/autodep
 
 # Сделайте все скрипты исполняемыми
 sudo chmod +x *.sh
@@ -287,7 +308,7 @@ sudo ./06_verify_system.sh
 ### Где находятся конфигурационные файлы
 
 ```
-/opt/foodtech/
+~/foodtech/
 ├── backend/.env              # Конфигурация Backend API
 ├── bot/.env                  # Конфигурация Telegram Bot
 ├── admin-panel/.env          # Конфигурация Admin Panel
@@ -299,7 +320,7 @@ sudo ./06_verify_system.sh
 
 ```bash
 # Используйте nano для редактирования
-sudo nano /opt/foodtech/backend/.env
+sudo nano ~/foodtech/backend/.env
 
 # Основные команды nano:
 # Ctrl+O - Сохранить
@@ -320,7 +341,7 @@ sudo systemctl restart foodtech-api
 sudo systemctl restart foodtech-bot
 
 # Для Admin Panel очистите кэш Laravel
-cd /opt/foodtech/admin-panel
+cd ~/foodtech/admin-panel
 php artisan config:clear
 php artisan cache:clear
 ```
@@ -382,7 +403,7 @@ curl http://localhost:8000/api/v1/categories/ | jq
 ### Проверка базы данных
 
 ```bash
-# Подключение к БД (потребуется пароль из /opt/foodtech/config/database.conf)
+# Подключение к БД (потребуется пароль из ~/foodtech/config/database.conf)
 sudo -u postgres psql foodtech_db
 
 # Список таблиц
@@ -427,7 +448,7 @@ sudo systemctl restart foodtech-api foodtech-bot nginx
 ### Обновление кода из Git
 
 ```bash
-cd /opt/foodtech
+cd ~/foodtech
 
 # Сохраните текущие .env файлы
 sudo cp backend/.env backend/.env.backup
@@ -444,7 +465,7 @@ sudo cp bot/.env.backup bot/.env
 ### Обновление Backend API
 
 ```bash
-cd /opt/foodtech/backend
+cd ~/foodtech/backend
 source venv/bin/activate
 
 # Обновление зависимостей
@@ -460,7 +481,7 @@ sudo systemctl restart foodtech-api
 ### Обновление Telegram Bot
 
 ```bash
-cd /opt/foodtech/bot
+cd ~/foodtech/bot
 source venv/bin/activate
 
 # Обновление зависимостей
@@ -473,7 +494,7 @@ sudo systemctl restart foodtech-bot
 ### Обновление Admin Panel
 
 ```bash
-cd /opt/foodtech/admin-panel
+cd ~/foodtech/admin-panel
 
 # Обновление зависимостей
 composer update
@@ -527,10 +548,10 @@ ls -lh /var/backups/foodtech/
 ```bash
 # Создание архива конфигураций
 sudo tar -czf /var/backups/foodtech-configs_$(date +%Y%m%d).tar.gz \
-    /opt/foodtech/backend/.env \
-    /opt/foodtech/bot/.env \
-    /opt/foodtech/admin-panel/.env \
-    /opt/foodtech/config/ \
+    ~/foodtech/backend/.env \
+    ~/foodtech/bot/.env \
+    ~/foodtech/admin-panel/.env \
+    ~/foodtech/config/ \
     /etc/nginx/sites-available/foodtech-* \
     /etc/systemd/system/foodtech-*
 ```
@@ -544,18 +565,18 @@ sudo tar -czf /var/backups/foodtech-configs_$(date +%Y%m%d).tar.gz \
 sudo journalctl -u foodtech-api -n 50
 
 # Проверка конфигурации
-sudo cat /opt/foodtech/backend/.env
+sudo cat ~/foodtech/backend/.env
 
 # Проверка подключения к БД
-cd /opt/foodtech/backend
+cd ~/foodtech/backend
 source venv/bin/activate
 python -c "from app.core.database import engine; print('DB OK')"
 
 # Проверка прав
-ls -la /opt/foodtech/backend/
+ls -la ~/foodtech/backend/
 
 # Ручной запуск для диагностики
-cd /opt/foodtech/backend
+cd ~/foodtech/backend
 source venv/bin/activate
 python main.py
 ```
@@ -567,13 +588,13 @@ python main.py
 sudo journalctl -u foodtech-bot -n 50
 
 # Проверка токена
-sudo cat /opt/foodtech/bot/.env
+sudo cat ~/foodtech/bot/.env
 
 # Проверка доступности Backend API
 curl http://localhost:8000/health
 
 # Ручной запуск для диагностики
-cd /opt/foodtech/bot
+cd ~/foodtech/bot
 source venv/bin/activate
 python main.py
 ```
@@ -592,10 +613,10 @@ sudo cat /etc/nginx/sites-available/foodtech-admin
 sudo systemctl status php8.2-fpm
 
 # Проверка логов Laravel
-sudo tail -f /opt/foodtech/admin-panel/storage/logs/laravel.log
+sudo tail -f ~/foodtech/admin-panel/storage/logs/laravel.log
 
 # Очистка кэша Laravel
-cd /opt/foodtech/admin-panel
+cd ~/foodtech/admin-panel
 php artisan cache:clear
 php artisan config:clear
 php artisan view:clear
@@ -661,7 +682,7 @@ sudo netstat -tulnp | grep -E "8000|80|443"
 sudo nano /etc/systemd/system/foodtech-api.service
 
 # Измените строку ExecStart:
-# ExecStart=/opt/foodtech/backend/venv/bin/uvicorn main:app --host 0.0.0.0 --port 8000 --workers 4
+# ExecStart=~/foodtech/backend/venv/bin/uvicorn main:app --host 0.0.0.0 --port 8000 --workers 4
 
 # Перезагрузите конфигурацию
 sudo systemctl daemon-reload
@@ -711,9 +732,9 @@ sudo systemctl restart postgresql
 4. **Проверяйте права на файлы:**
    ```bash
    # .env файлы должны быть 600
-   sudo chmod 600 /opt/foodtech/backend/.env
-   sudo chmod 600 /opt/foodtech/bot/.env
-   sudo chmod 600 /opt/foodtech/admin-panel/.env
+   sudo chmod 600 ~/foodtech/backend/.env
+   sudo chmod 600 ~/foodtech/bot/.env
+   sudo chmod 600 ~/foodtech/admin-panel/.env
    ```
 
 5. **Мониторьте логи на подозрительную активность:**
@@ -727,8 +748,8 @@ sudo systemctl restart postgresql
 ### Получение помощи
 
 - **GitHub Issues:** [github.com/carman72tmn/foodtech/issues](https://github.com/carman72tmn/foodtech/issues)
-- **Документация проекта:** `/opt/foodtech/README.md`
-- **Инструкции по развертыванию:** `/opt/foodtech/instructions/`
+- **Документация проекта:** `~/foodtech/README.md`
+- **Инструкции по развертыванию:** `~/foodtech/instructions/`
 
 ### Полезные ссылки
 

@@ -108,6 +108,7 @@ foodtech/
 │
 ├── autodep/                   # 🚀 АВТОМАТИЧЕСКИЕ УСТАНОВЩИКИ
 │   ├── 00_install_nano.sh     # Установка nano редактора
+│   ├── install_postgresql.sh  # Автоустановка PostgreSQL (независимый)
 │   ├── 01_prepare_server.sh   # Подготовка сервера
 │   ├── 02_setup_database.sh   # Настройка базы данных
 │   ├── 03_deploy_backend.sh   # Развертывание Backend
@@ -144,7 +145,7 @@ foodtech/
 Используйте автоматические установщики для быстрого развертывания:
 
 ```bash
-cd /opt/foodtech/autodep
+cd ~/foodtech/autodep
 sudo chmod +x *.sh
 
 # Запускайте скрипты по порядку:
@@ -300,19 +301,19 @@ sudo -u postgres psql foodtech_db < backup_YYYYMMDD.sql
 
 ```bash
 # Backend API
-cd /opt/foodtech/backend
+cd ~/foodtech/backend
 source venv/bin/activate
 pip install -r requirements.txt --upgrade
 sudo systemctl restart foodtech-api
 
 # Telegram Bot
-cd /opt/foodtech/bot
+cd ~/foodtech/bot
 source venv/bin/activate
 pip install -r requirements.txt --upgrade
 sudo systemctl restart foodtech-bot
 
 # Admin Panel
-cd /opt/foodtech/admin-panel
+cd ~/foodtech/admin-panel
 composer update
 php artisan migrate
 php artisan cache:clear
