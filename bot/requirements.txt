@@ -1,6 +1,6 @@
 # Telegram Bot
 aiogram==3.17.0
-aiohttp==3.10.5
+aiohttp==3.13.3
 
 # HTTP клиент для API
 httpx==0.27.0
