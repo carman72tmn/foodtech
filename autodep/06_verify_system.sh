@@ -18,7 +18,7 @@ CYAN='\033[0;36m'
 NC='\033[0m' # No Color
 
 # Параметры
-INSTALL_DIR="/opt/foodtech"
+INSTALL_DIR="$HOME/foodtech"
 BACKEND_DIR="$INSTALL_DIR/backend"
 ADMIN_DIR="$INSTALL_DIR/admin-panel"
 BOT_DIR="$INSTALL_DIR/bot"
@@ -146,8 +146,8 @@ check_database() {
     print_subheader "Проверка базы данных PostgreSQL"
 
     # Загружаем конфигурацию БД
-    if [ -f "/opt/foodtech/config/database.conf" ]; then
-        source "/opt/foodtech/config/database.conf"
+    if [ -f "$HOME/foodtech/config/database.conf" ]; then
+        source "$HOME/foodtech/config/database.conf"
 
         run_test "База данных существует" "sudo -u postgres psql -lqt | cut -d \| -f 1 | grep -qw $DB_NAME"
         run_test "Пользователь базы данных существует" "sudo -u postgres psql -tAc \"SELECT 1 FROM pg_roles WHERE rolname='$DB_USER'\" | grep -q 1"
