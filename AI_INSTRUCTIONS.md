@@ -51,7 +51,7 @@
 ## 🗂️ Структура проекта
 
 ```
-/home/runner/work/dovezu/dovezu/
+/home/runner/work/foodtech/foodtech/
 ├── admin/                     # Laravel Admin Panel
 │   ├── app/
 │   │   ├── Filament/         # Filament Resources
@@ -379,8 +379,8 @@ php artisan view:clear
 ### Первичная установка
 ```bash
 # Клонирование
-git clone https://github.com/carman72tmn/dovezu.git
-cd dovezu
+git clone https://github.com/carman72tmn/foodtech.git
+cd foodtech
 
 # Настройка окружения
 cp .env.production .env

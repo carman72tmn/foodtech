@@ -107,7 +107,7 @@
 ### 📂 Структура документации
 
 ```
-dovezu/
+foodtech/
 ├── README.md                    # Главная документация
 ├── AI_INSTRUCTIONS.md          # Для AI ассистентов
 ├── SETUP_GUIDE.md              # Руководство по установке
@@ -304,8 +304,8 @@ auto-install.sh
 
 ### 📧 Контакты
 
-- GitHub: https://github.com/carman72tmn/dovezu
-- Issues: https://github.com/carman72tmn/dovezu/issues
+- GitHub: https://github.com/carman72tmn/foodtech
+- Issues: https://github.com/carman72tmn/foodtech/issues
 
 ---
 
