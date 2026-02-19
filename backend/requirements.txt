@@ -1,0 +1,30 @@
+# FastAPI и зависимости веб-сервера
+fastapi==0.109.2
+uvicorn[standard]==0.27.1
+python-multipart==0.0.22
+
+# База данных и ORM
+sqlalchemy==2.0.27
+sqlmodel==0.0.14
+psycopg2-binary==2.9.9
+alembic==1.13.1
+
+# Валидация и настройки
+pydantic==2.6.1
+pydantic-settings==2.1.0
+python-dotenv==1.0.1
+
+# HTTP клиент для iiko API
+httpx==0.27.0
+
+# Кэширование (опционально)
+redis==5.0.1
+hiredis==2.3.2
+
+# JWT аутентификация
+python-jose[cryptography]==3.3.0
+passlib[bcrypt]==1.7.4
+
+# Утилиты
+python-dateutil==2.8.2
+pytz==2024.1
