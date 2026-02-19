@@ -5,6 +5,7 @@
 ## 📋 Обзор
 
 Backend API предоставляет RESTful интерфейс для:
+
 - Управления меню и товарами
 - Обработки заказов
 - Интеграции с iiko Cloud
@@ -59,38 +60,31 @@ backend/
 
 ## ⚙️ Установка
 
-### Вариант 1: Локальная разработка
-
-```bash
 # Перейти в директорию backend
+
 cd backend
 
 # Создать виртуальное окружение
+
 python3 -m venv venv
-source venv/bin/activate  # Linux/Mac
+source venv/bin/activate # Linux/Mac
+
 # или
-venv\Scripts\activate  # Windows
+
+venv\Scripts\activate # Windows
 
 # Установить зависимости
+
 pip install -r requirements.txt
 
 # Настроить окружение
+
 cp .env.example .env
-nano .env  # Заполнить переменные
+nano .env # Заполнить переменные
 
 # Запустить сервер
+
 uvicorn main:app --reload --host 0.0.0.0 --port 8000
-```
-
-### Вариант 2: Docker
-
-```bash
-# Из корневой директории проекта
-docker compose up backend -d
-
-# Просмотр логов
-docker compose logs -f backend
-```
 
 ## 🔧 Конфигурация
 
@@ -121,16 +115,16 @@ BOT_TOKEN=your_telegram_bot_token
 
 ### Переменные окружения
 
-| Переменная | Описание | По умолчанию |
-|-----------|----------|--------------|
-| `PROJECT_NAME` | Название проекта | DovezU Food Delivery |
-| `API_V1_STR` | Префикс API | /api/v1 |
-| `POSTGRES_SERVER` | Хост PostgreSQL | localhost |
-| `POSTGRES_USER` | Пользователь БД | foodtech |
-| `POSTGRES_PASSWORD` | Пароль БД | - |
-| `POSTGRES_DB` | Имя БД | foodtech_db |
-| `IIKO_API_LOGIN` | API ключ iiko | - |
-| `IIKO_API_BASE_URL` | URL iiko API | https://api-ru.iiko.services |
+| Переменная          | Описание         | По умолчанию                 |
+| ------------------- | ---------------- | ---------------------------- |
+| `PROJECT_NAME`      | Название проекта | DovezU Food Delivery         |
+| `API_V1_STR`        | Префикс API      | /api/v1                      |
+| `POSTGRES_SERVER`   | Хост PostgreSQL  | localhost                    |
+| `POSTGRES_USER`     | Пользователь БД  | foodtech                     |
+| `POSTGRES_PASSWORD` | Пароль БД        | -                            |
+| `POSTGRES_DB`       | Имя БД           | foodtech_db                  |
+| `IIKO_API_LOGIN`    | API ключ iiko    | -                            |
+| `IIKO_API_BASE_URL` | URL iiko API     | https://api-ru.iiko.services |
 
 ## 🚀 Запуск
 
@@ -505,10 +499,10 @@ alembic downgrade -1
 ## 📞 Поддержка
 
 Для вопросов и проблем:
+
 - Создайте Issue на GitHub
-- См. [FIXES_README.md](../FIXES_README.md)
-- Проверьте [AI_INSTRUCTIONS.md](../AI_INSTRUCTIONS.md)
+- Проверьте [Главную документацию проекта](../README.md)
 
 ---
 
-*Последнее обновление: 2026-02-19*
+_Последнее обновление: 2026-02-19_
