@@ -27,7 +27,7 @@ class AppServiceProvider extends ServiceProvider
             }
         }
 
-        \Log::info('AppServiceProvider booted. Environment: ' . $this->app->environment());
+        \Illuminate\Support\Facades\Log::info('AppServiceProvider booted. Environment: ' . $this->app->environment());
 
         // Настройка меню AdminLTE
         \Illuminate\Support\Facades\Event::listen(
@@ -82,8 +82,8 @@ class AppServiceProvider extends ServiceProvider
                 $newOrdersCount = 0;
                 try {
                     $newOrdersCount = \App\Models\Order::where('status', 'CREATED')->count();
-                } catch (\Exception $e) {
-                    \Log::error('Menu building error: ' . $e->getMessage());
+                } catch (\Throwable $e) {
+                    \Illuminate\Support\Facades\Log::error('Menu building error: ' . $e->getMessage());
                 }
 
                 $event->menu->add([

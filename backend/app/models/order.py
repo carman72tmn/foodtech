@@ -24,6 +24,7 @@ class OrderBase(SQLModel):
     status: str = "CREATED" # CREATED, PENDING_IIKO, CONFIRMED, CANCELLED
     iiko_order_id: Optional[UUID] = None # ID from iiko
     iiko_order_number: Optional[str] = None
+    iiko_status_raw: Optional[str] = None # Original status from iiko
     created_at: datetime = Field(default_factory=datetime.utcnow)
 
 class Order(OrderBase, table=True):

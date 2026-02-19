@@ -6,10 +6,32 @@ from app.api.endpoints import menu, orders, loyalty
 
 @asynccontextmanager
 async def lifespan(app: FastAPI):
-    # Startup: Create DB tables
+    # Запуск: Создание таблиц БД
     await init_db()
+    
+    # Фоновая задача: мониторинг заказов
+    from app.services.order_monitor import OrderMonitor
+    import asyncio
+    
+    async def monitor_orders():
+        monitor = OrderMonitor()
+        while True:
+            try:
+                await monitor.check_active_orders()
+            except Exception as e:
+                print(f"Ошибка в мониторе заказов: {e}")
+            await asyncio.sleep(30) # Проверка каждые 30 секунд
+
+    task = asyncio.create_task(monitor_orders())
+    
     yield
-    # Shutdown events if needed
+    
+    # Завершение работы
+    task.cancel()
+    try:
+        await task
+    except asyncio.CancelledError:
+        pass
 
 app = FastAPI(
     title=settings.PROJECT_NAME,
