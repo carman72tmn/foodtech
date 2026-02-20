@@ -47,7 +47,7 @@ class ProductBase(BaseModel):
     """Базовые поля товара"""
     name: str = Field(max_length=255)
     description: Optional[str] = None
-    price: Decimal = Field(ge=0, decimal_places=2)
+    price: Decimal = Field(ge=0)
     image_url: Optional[str] = None
     category_id: Optional[int] = None
     is_available: bool = True
@@ -63,7 +63,7 @@ class ProductUpdate(BaseModel):
     """Обновление товара"""
     name: Optional[str] = Field(None, max_length=255)
     description: Optional[str] = None
-    price: Optional[Decimal] = Field(None, ge=0, decimal_places=2)
+    price: Optional[Decimal] = Field(None, ge=0)
     image_url: Optional[str] = None
     category_id: Optional[int] = None
     is_available: Optional[bool] = None
@@ -74,6 +74,7 @@ class ProductResponse(ProductBase):
     """Ответ API с товаром"""
     id: int
     iiko_id: Optional[str] = None
+    article: Optional[str] = None
     created_at: datetime
     updated_at: datetime
 
@@ -144,6 +145,75 @@ class OrderResponse(BaseModel):
 class IikoSyncResponse(BaseModel):
     """Результат синхронизации с iiko"""
     success: bool
-    categories_synced: int
-    products_synced: int
+    categories_synced: int = 0
+    products_synced: int = 0
+    products_updated: int = 0
+    stopped_count: int = 0
     message: str
+
+
+class SyncLogResponse(BaseModel):
+    """Лог синхронизации"""
+    id: int
+    sync_type: str
+    status: str
+    categories_count: int
+    products_count: int
+    details: Optional[str] = None
+    created_at: datetime
+
+    model_config = ConfigDict(from_attributes=True)
+
+
+# ============= Схемы настроек iiko =============
+
+class IikoSettingsCreate(BaseModel):
+    """Создание/обновление настроек iiko"""
+    api_login: str = Field(max_length=500)
+    organization_id: Optional[str] = None
+    external_menu_id: Optional[str] = None
+    terminal_group_id: Optional[str] = None
+    payment_type_cash: Optional[str] = None
+    payment_type_card: Optional[str] = None
+    payment_type_online: Optional[str] = None
+    payment_type_bonus: Optional[str] = None
+    bonus_limit_percent: int = Field(default=0, ge=0, le=100)
+    discount_id: Optional[str] = None
+    no_pass_promo: bool = False
+    no_use_bonus: bool = False
+    no_use_iiko_promo: bool = False
+    fallback_email: Optional[str] = None
+    fallback_telegram_id: Optional[str] = None
+    webhook_url: Optional[str] = None
+    webhook_auth_token: Optional[str] = None
+
+
+class IikoSettingsResponse(IikoSettingsCreate):
+    """Ответ API с настройками iiko"""
+    id: int
+    created_at: datetime
+    updated_at: datetime
+
+    model_config = ConfigDict(from_attributes=True)
+
+
+class IikoConnectionTestResponse(BaseModel):
+    """Результат проверки подключения к iiko"""
+    success: bool
+    token_valid: bool = False
+    organizations: list = []
+    error: Optional[str] = None
+
+
+class IikoWebhookEventResponse(BaseModel):
+    """Событие вебхука"""
+    id: int
+    event_type: str
+    event_id: str
+    payload: dict
+    processed: bool
+    error: Optional[str] = None
+    created_at: datetime
+
+    model_config = ConfigDict(from_attributes=True)
+

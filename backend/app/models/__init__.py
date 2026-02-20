@@ -6,6 +6,11 @@ from .user import User
 from .category import Category
 from .product import Product
 from .order import Order, OrderItem, OrderStatus
+from .iiko_settings import IikoSettings
+from .sync_log import SyncLog
+from .loyalty import LoyaltyStatus, LoyaltyRule, LoyaltyTransaction
+from .promo_code import PromoCode
+from .iiko_webhook_event import IikoWebhookEvent
 
 __all__ = [
     "User",
@@ -13,5 +18,12 @@ __all__ = [
     "Product",
     "Order",
     "OrderItem",
-    "OrderStatus"
+    "OrderStatus",
+    "IikoSettings",
+    "SyncLog",
+    "LoyaltyStatus",
+    "LoyaltyRule",
+    "LoyaltyTransaction",
+    "PromoCode",
+    "IikoWebhookEvent"
 ]

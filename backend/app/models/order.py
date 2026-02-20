@@ -6,6 +6,7 @@ from datetime import datetime
 from decimal import Decimal
 from enum import Enum
 from sqlmodel import Field, SQLModel, Relationship
+from sqlalchemy import Numeric
 
 
 class OrderStatus(str, Enum):
@@ -29,7 +30,7 @@ class Order(SQLModel, table=True):
     customer_name: str = Field(max_length=255)
     customer_phone: str = Field(max_length=20)
     delivery_address: str = Field(max_length=500)
-    total_amount: Decimal = Field(max_digits=10, decimal_places=2)
+    total_amount: Decimal = Field(sa_type=Numeric(10, 2))
     status: OrderStatus = Field(default=OrderStatus.NEW)
     iiko_order_id: Optional[str] = Field(default=None, unique=True, index=True, max_length=255)
     comment: Optional[str] = Field(default=None)
@@ -59,8 +60,8 @@ class OrderItem(SQLModel, table=True):
     product_id: int = Field(foreign_key="products.id")
     product_name: str = Field(max_length=255)  # Сохраняем название на момент заказа
     quantity: int = Field(default=1, ge=1)
-    price: Decimal = Field(max_digits=10, decimal_places=2)  # Цена на момент заказа
-    total: Decimal = Field(max_digits=10, decimal_places=2)  # quantity * price
+    price: Decimal = Field(sa_type=Numeric(10, 2))  # Цена на момент заказа
+    total: Decimal = Field(sa_type=Numeric(10, 2))  # quantity * price
 
     class Config:
         """Настройки модели"""
