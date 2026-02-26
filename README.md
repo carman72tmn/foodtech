@@ -12,12 +12,13 @@
 FoodTech - это комплексное решение для ресторанов и служб доставки еды, включающее:
 
 - **Backend API** (FastAPI) - RESTful API для управления заказами, меню и интеграции с iiko
-- **Admin Panel** (Laravel + Filament 3) - Современная панель администрирования
+- **Admin Panel** (Vue/Vuetify) - Современная панель администрирования на базе шаблона Sneat
 - **Telegram Bot** (aiogram 3) - Интерфейс для клиентов с полным функционалом заказа
 
 ## 🚀 Основные возможности
 
 ### Backend API
+
 - ✅ RESTful API на FastAPI
 - ✅ Полная интеграция с iiko Cloud API
 - ✅ Управление категориями и товарами
@@ -27,7 +28,8 @@ FoodTech - это комплексное решение для ресторан�
 - ✅ Отслеживание статусов заказов
 
 ### Admin Panel
-- ✅ Современный UI на базе Filament 3
+
+- ✅ Современный UI на базе Vue 3 и Vuetify
 - ✅ Управление меню (категории и товары)
 - ✅ Мониторинг заказов в реальном времени
 - ✅ Ручная и автоматическая синхронизация с iiko
@@ -35,6 +37,7 @@ FoodTech - это комплексное решение для ресторан�
 - ✅ Статистика и отчеты
 
 ### Telegram Bot
+
 - ✅ Просмотр меню по категориям
 - ✅ Корзина покупок с управлением товарами
 - ✅ Оформление заказа с указанием адреса
@@ -45,6 +48,7 @@ FoodTech - это комплексное решение для ресторан�
 ## 🛠️ Технологический стек
 
 ### Backend
+
 - **FastAPI** 0.109.2 - Современный веб-фреймворк
 - **SQLModel** 0.0.14 / **SQLAlchemy** 2.0.27 - ORM
 - **PostgreSQL** 15+ - База данных
@@ -53,17 +57,17 @@ FoodTech - это комплексное решение для ресторан�
 - **Pydantic** v2 - Валидация данных
 
 ### Admin Panel
-- **Laravel** 12.0 - PHP фреймворк
-- **Filament** 3.2 - Панель администрирования
-- **PHP** 8.2+ - Язык программирования
-- **PostgreSQL** 15+ - Общая БД с Backend
+
+- **Vue/Vuetify** - Панель администрирования (Sneat Template)
 
 ### Telegram Bot
+
 - **aiogram** 3.17.0 - Фреймворк для Telegram ботов
 - **Python** 3.11+ - Язык программирования
 - **httpx** - HTTP клиент для Backend API
 
 ### Инфраструктура
+
 - **Ubuntu** 22.04 LTS / 24.04 LTS
 - **Nginx** - Веб-сервер и reverse proxy
 - **systemd** - Управление сервисами
@@ -86,12 +90,10 @@ foodtech/
 │   ├── requirements.txt       # Зависимости Python
 │   └── .env.example          # Пример конфигурации
 │
-├── admin-panel/               # Laravel Admin Panel
-│   ├── app/                   # Приложение Laravel
-│   ├── config/                # Конфигурация
-│   ├── resources/             # Views и assets
-│   ├── routes/                # Маршруты
-│   ├── composer.json          # Зависимости PHP
+├── admin/                      # Admin Panel (Vue/Vuetify)
+│   ├── src/                   # Source Files (Vue)
+│   ├── public/                # Public assets
+│   ├── package.json           # Зависимости JS
 │   └── .env.example          # Пример конфигурации
 │
 ├── bot/                       # Telegram Bot
@@ -112,7 +114,7 @@ foodtech/
 │   ├── 01_prepare_server.sh   # Подготовка сервера
 │   ├── 02_setup_database.sh   # Настройка базы данных
 │   ├── 03_deploy_backend.sh   # Развертывание Backend
-│   ├── 04_deploy_admin.sh     # Развертывание Admin Panel
+│   ├── 04_deploy_admin.sh     # Развертывание Admin Panel (Vue/Laravel)
 │   ├── 05_deploy_bot.sh       # Развертывание Telegram Bot
 │   ├── 06_verify_system.sh    # Проверка системы
 │   └── README.md              # Подробная инструкция
@@ -179,8 +181,8 @@ sudo ./06_verify_system.sh       # Проверка системы
    - Создание systemd сервиса
 
 4. **[Развертывание Admin Panel](instructions/04_admin_deployment.md)**
-   - Установка зависимостей Composer
-   - Настройка Laravel и Filament
+   - Установка NPM зависимостей
+   - Настройка Vue/Vuetify
    - Конфигурация Nginx и SSL
 
 5. **[Развертывание Telegram Bot](instructions/05_bot_deployment.md)**
@@ -229,11 +231,7 @@ API_URL=http://localhost:8000/api/v1
 ### Admin Panel (.env)
 
 ```ini
-DB_CONNECTION=pgsql
-DB_DATABASE=foodtech_db
-DB_USERNAME=foodtech_user
-DB_PASSWORD=your_password
-API_URL=http://localhost:8000/api/v1
+VITE_API_URL=http://localhost:8000/api/v1
 ```
 
 ## 🔐 Безопасность
@@ -313,10 +311,9 @@ pip install -r requirements.txt --upgrade
 sudo systemctl restart foodtech-bot
 
 # Admin Panel
-cd ~/foodtech/admin-panel
-composer update
-php artisan migrate
-php artisan cache:clear
+cd ~/foodtech/admin
+npm install
+npm run build
 ```
 
 ## 🤝 Поддержка и вклад
@@ -324,6 +321,7 @@ php artisan cache:clear
 ### Сообщить об ошибке
 
 Если вы нашли ошибку, пожалуйста:
+
 1. Проверьте логи соответствующего сервиса
 2. Создайте issue на GitHub с описанием проблемы
 3. Приложите логи и шаги для воспроизведения
@@ -331,6 +329,7 @@ php artisan cache:clear
 ### Вклад в проект
 
 Мы приветствуем вклад в проект! Пожалуйста:
+
 1. Fork репозитория
 2. Создайте feature branch
 3. Commit изменения
@@ -344,15 +343,14 @@ MIT License - см. файл LICENSE
 ## 👥 Авторы
 
 - Backend API - Python/FastAPI
-- Admin Panel - Laravel/Filament
+- Admin Panel - Vue/Vuetify
 - Telegram Bot - aiogram
 - DevOps - Ubuntu/Nginx/systemd
 
 ## 🔗 Полезные ссылки
 
 - [FastAPI Documentation](https://fastapi.tiangolo.com/)
-- [Laravel Documentation](https://laravel.com/docs)
-- [Filament Documentation](https://filamentphp.com/docs)
+- [Vuetify Documentation](https://vuetifyjs.com/)
 - [aiogram Documentation](https://docs.aiogram.dev/)
 - [iiko Cloud API](https://api-ru.iiko.services/)
 - [PostgreSQL Documentation](https://www.postgresql.org/docs/)
@@ -376,6 +374,7 @@ MIT License - см. файл LICENSE
 ## 📞 Контакты
 
 Для вопросов и предложений:
+
 - GitHub Issues: [github.com/carman72tmn/foodtech/issues](https://github.com/carman72tmn/foodtech/issues)
 - Email: support@foodtech.example.com
 

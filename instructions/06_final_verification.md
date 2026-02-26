@@ -8,7 +8,6 @@
 # Проверяем статус всех сервисов
 sudo systemctl status postgresql
 sudo systemctl status nginx
-sudo systemctl status php8.2-fpm
 sudo systemctl status foodtech-api
 sudo systemctl status foodtech-bot
 sudo systemctl status redis-server  # если установлен
@@ -39,6 +38,7 @@ curl http://localhost:8000/api/v1/categories/
 ### Через браузер
 
 Откройте в браузере:
+
 - http://your-server-ip:8000/docs - Swagger UI документация
 - http://your-server-ip:8000/redoc - ReDoc документация
 
@@ -47,20 +47,10 @@ curl http://localhost:8000/api/v1/categories/
 ### Через браузер
 
 1. Откройте: https://admin.yourdomain.com
-2. Должна появиться страница входа Filament
+2. Должна появиться страница входа панели администратора
 3. Войдите с данными администратора
 4. Проверьте доступные разделы:
    - Dashboard (главная страница)
-   - Resources (если настроены)
-
-### Проверка логов Laravel
-
-```bash
-# Последние записи в логах
-tail -f /opt/foodtech/admin-panel/storage/logs/laravel.log
-
-# Не должно быть критических ошибок (ERROR, CRITICAL)
-```
 
 ## 6.4 Проверка Telegram Bot
 
@@ -200,9 +190,6 @@ sudo tail -f /var/log/nginx/error.log
 
 # PostgreSQL
 sudo tail -f /var/log/postgresql/postgresql-15-main.log
-
-# Laravel (admin-panel)
-tail -f /opt/foodtech/admin-panel/storage/logs/laravel.log
 ```
 
 ## 6.9 Мониторинг производительности
@@ -273,7 +260,6 @@ sudo crontab -e
 
 - [ ] PostgreSQL запущен и работает
 - [ ] Nginx запущен и работает
-- [ ] PHP-FPM запущен и работает
 - [ ] Backend API запущен и отвечает на запросы
 - [ ] Telegram Bot запущен и отвечает на команды
 - [ ] Admin Panel доступна через браузер
@@ -308,6 +294,7 @@ sudo crontab -e
 ### Поддержка
 
 При возникновении проблем:
+
 1. Проверьте логи соответствующего сервиса
 2. Обратитесь к документации компонентов
 3. Проверьте GitHub Issues: https://github.com/carman72tmn/foodtech/issues

@@ -7,9 +7,11 @@ A complete, production-ready food delivery system created according to the techn
 ## Components Created
 
 ### 1. Backend API (FastAPI)
+
 **Location:** `/backend/`
 
 **Key Files:**
+
 - `main.py` - Main FastAPI application
 - `init_db.py` - Database initialization script
 - `app/api/` - API endpoints (categories, products, orders, iiko)
@@ -18,6 +20,7 @@ A complete, production-ready food delivery system created according to the techn
 - `requirements.txt` - Python dependencies
 
 **Features:**
+
 - RESTful API with FastAPI
 - Full iiko Cloud API integration
 - PostgreSQL database with SQLModel/SQLAlchemy
@@ -26,9 +29,11 @@ A complete, production-ready food delivery system created according to the techn
 - Swagger/ReDoc documentation
 
 ### 2. Telegram Bot (aiogram)
+
 **Location:** `/bot/`
 
 **Key Files:**
+
 - `main.py` - Bot entry point
 - `handlers/__init__.py` - Command and callback handlers
 - `keyboards/__init__.py` - Telegram keyboards
@@ -36,6 +41,7 @@ A complete, production-ready food delivery system created according to the techn
 - `utils/cart.py` - Shopping cart management
 
 **Features:**
+
 - Menu browsing by categories
 - Shopping cart functionality
 - Order placement with address
@@ -43,17 +49,13 @@ A complete, production-ready food delivery system created according to the techn
 - FSM (Finite State Machine) for order flow
 - Inline and reply keyboards
 
-### 3. Admin Panel (Laravel + Filament)
-**Location:** `/admin-panel/`
+### 3. Admin Panel (Vue)
 
-**Key Files:**
-- `composer.json` - PHP dependencies
-- `.env.example` - Configuration template
-- `README.md` - Setup instructions
+**Location:** `/admin/`
 
 **Features:**
-- Laravel 12 framework
-- Filament 3 admin interface
+
+- Vue 3 + Vuetify (Sneat Template)
 - Menu management (categories/products)
 - Order monitoring
 - iiko sync triggers
@@ -84,8 +86,7 @@ Complete step-by-step guides for beginners:
    - Environment configuration
 
 4. **04_admin_deployment.md** - Admin panel deployment
-   - Composer dependencies
-   - Laravel configuration
+   - Vue/Vuetify configuration
    - Nginx site setup
    - SSL certificate setup
 
@@ -105,16 +106,19 @@ Complete step-by-step guides for beginners:
 **Location:** `/configs/`
 
 ### Nginx Configurations
+
 - `nginx/backend-api.conf` - Backend API reverse proxy
-- `nginx/admin-panel.conf` - Laravel admin panel
+- `nginx/admin.conf` - Vue admin panel
 
 ### systemd Services
+
 - `systemd/foodtech-api.service` - Backend API service
 - `systemd/foodtech-bot.service` - Telegram Bot service
 
 ## Technology Stack
 
 ### Backend
+
 - FastAPI 0.109.2
 - Python 3.11+
 - SQLModel 0.0.14 / SQLAlchemy 2.0.27
@@ -123,17 +127,18 @@ Complete step-by-step guides for beginners:
 - Pydantic v2
 
 ### Admin Panel
-- Laravel 12.0
-- Filament 3.2
-- PHP 8.2+
-- PostgreSQL (shared with Backend)
+
+- Vue 3 / Vuetify
+- JavaScript/Node.js
 
 ### Telegram Bot
+
 - aiogram 3.17.0
 - Python 3.11+
 - httpx (Backend API client)
 
 ### Infrastructure
+
 - Ubuntu 22.04/24.04 LTS
 - Nginx (web server)
 - systemd (service management)
@@ -143,6 +148,7 @@ Complete step-by-step guides for beginners:
 ## Database Schema
 
 **Tables:**
+
 - `users` - Admin users
 - `categories` - Product categories
 - `products` - Menu items
@@ -150,6 +156,7 @@ Complete step-by-step guides for beginners:
 - `order_items` - Order line items
 
 All tables include:
+
 - `iiko_id` fields for sync
 - Timestamps (created_at, updated_at)
 - Proper foreign keys and indexes
@@ -157,6 +164,7 @@ All tables include:
 ## API Endpoints
 
 ### Categories
+
 - `GET /api/v1/categories/` - List categories
 - `GET /api/v1/categories/{id}` - Get category
 - `POST /api/v1/categories/` - Create category
@@ -164,6 +172,7 @@ All tables include:
 - `DELETE /api/v1/categories/{id}` - Delete category
 
 ### Products
+
 - `GET /api/v1/products/` - List products
 - `GET /api/v1/products/{id}` - Get product
 - `POST /api/v1/products/` - Create product
@@ -171,6 +180,7 @@ All tables include:
 - `DELETE /api/v1/products/{id}` - Delete product
 
 ### Orders
+
 - `GET /api/v1/orders/` - List orders
 - `GET /api/v1/orders/{id}` - Get order
 - `POST /api/v1/orders/` - Create order
@@ -178,6 +188,7 @@ All tables include:
 - `POST /api/v1/orders/{id}/cancel` - Cancel order
 
 ### iiko Integration
+
 - `POST /api/v1/iiko/sync-nomenclature` - Sync menu from iiko
 - `GET /api/v1/iiko/organization-info` - Get org info
 
@@ -187,6 +198,7 @@ All tables include:
 - `/help` - Show help information
 
 **Menu Buttons:**
+
 - 🍕 Меню - Browse menu
 - 🛒 Корзина - View cart
 - 📝 Мои заказы - Order history
@@ -205,12 +217,14 @@ All tables include:
 ## Deployment Requirements
 
 **Server:**
+
 - Ubuntu 22.04 LTS or 24.04 LTS
 - 2GB+ RAM recommended
 - 20GB+ disk space
 - Root or sudo access
 
 **External Services:**
+
 - Domain name (for SSL)
 - Telegram Bot token (from @BotFather)
 - iiko Cloud account (optional)
@@ -220,7 +234,7 @@ All tables include:
 ```
 foodtech/
 ├── backend/          # FastAPI backend (51 files)
-├── admin-panel/      # Laravel admin (4 files)
+├── admin/            # Vue admin panel
 ├── bot/              # Telegram bot (12 files)
 ├── configs/          # Server configs (4 files)
 ├── instructions/     # Deployment docs (6 files)
@@ -233,7 +247,7 @@ foodtech/
 
 ✅ Complete Backend API with iiko integration
 ✅ Full-featured Telegram Bot with cart system
-✅ Admin Panel structure (Laravel + Filament)
+✅ Admin Panel structure (Vue/Vuetify)
 ✅ Comprehensive deployment documentation
 ✅ Production-ready configurations
 ✅ Security best practices
@@ -261,8 +275,7 @@ foodtech/
 2. Configure iiko credentials (if using)
 3. Create Telegram bot via @BotFather
 4. Test full order flow
-5. Set up monitoring and backups
-6. Configure Laravel admin resources
+5. Configure Admin panel environment
 
 ## Documentation Quality
 

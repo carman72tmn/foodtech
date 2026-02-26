@@ -5,7 +5,7 @@
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 from app.core.config import settings
-from app.api import categories, products, orders, iiko, loyalty, promo_codes, webhooks
+from app.api import categories, products, orders, iiko, loyalty, promo_codes, webhooks, companies, branches, actions, nps, customers, mailings, stories, funnels
 
 # Создание приложения FastAPI
 app = FastAPI(
@@ -19,7 +19,7 @@ app = FastAPI(
 # Настройка CORS для работы с фронтендом и Telegram Bot
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["*"],  # В продакшене укажите конкретные домены
+    allow_origins=["http://localhost:5173", "http://127.0.0.1:5173", "*"],  # В продакшене укажите конкретные домены
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],
@@ -29,9 +29,17 @@ app.add_middleware(
 app.include_router(categories.router, prefix="/api/v1")
 app.include_router(products.router, prefix="/api/v1")
 app.include_router(orders.router, prefix="/api/v1")
+app.include_router(companies.router, prefix="/api/v1")
+app.include_router(branches.router, prefix="/api/v1")
 app.include_router(iiko.router, prefix="/api/v1")
 app.include_router(loyalty.router, prefix="/api/v1")
 app.include_router(promo_codes.router, prefix="/api/v1")
+app.include_router(actions.router, prefix="/api/v1")
+app.include_router(nps.router, prefix="/api/v1")
+app.include_router(customers.router, prefix="/api/v1")
+app.include_router(mailings.router, prefix="/api/v1")
+app.include_router(stories.router, prefix="/api/v1")
+app.include_router(funnels.router, prefix="/api/v1")
 app.include_router(webhooks.router, prefix="/api/v1/webhooks", tags=["Webhooks"])
 
 

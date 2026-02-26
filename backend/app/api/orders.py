@@ -6,8 +6,12 @@ from decimal import Decimal
 from fastapi import APIRouter, Depends, HTTPException, status
 from sqlmodel import Session, select
 from app.core.database import get_session
+from app.models.company import Branch
+from app.models.customer import Customer
 from app.models.order import Order, OrderItem, OrderStatus
 from app.models.product import Product
+from app.models.promo_code import PromoCode
+from app.models.action import Action
 from app.schemas import OrderCreate, OrderUpdate, OrderResponse, OrderItemResponse
 from app.services.iiko_service import iiko_service
 
@@ -78,6 +82,118 @@ async def create_order(
     3. Создаем заказ в БД
     4. Отправляем заказ в iiko
     """
+    # Проверяем клиента (Черный список)
+    customer = session.exec(select(Customer).where(Customer.phone == order_data.customer_phone)).first()
+    if not customer:
+        # Создаем нового клиента если не найден
+        customer = Customer(
+            phone=order_data.customer_phone,
+            name=order_data.customer_name,
+            telegram_id=order_data.telegram_user_id
+        )
+        session.add(customer)
+        session.commit()
+        session.refresh(customer)
+    
+    if customer.is_blocked:
+        raise HTTPException(
+            status_code=status.HTTP_403_FORBIDDEN,
+            detail="Ваш аккаунт заблокирован. Пожалуйста, свяжитесь с поддержкой."
+        )
+
+    # Синхронизируем данные лояльности из iiko
+    try:
+        iiko_customer = await iiko_service.get_customer_info(customer.phone)
+        if iiko_customer.get("id"):
+            customer.iiko_customer_id = iiko_customer["id"]
+            customer.name = iiko_customer.get("name") or customer.name
+            
+            # Получаем баланс бонусов (обычно первый кошелек)
+            if iiko_customer.get("walletBalances"):
+                # Суммируем баланс по всем кошелькам или берем первый основной
+                balance = sum(Decimal(str(w.get("balance", 0))) for w in iiko_customer["walletBalances"])
+                customer.bonus_points = balance
+            
+            # TODO: Обновление статуса лояльности на основе данных из iiko
+            
+            session.add(customer)
+            session.commit()
+            session.refresh(customer)
+    except Exception as e:
+        # Ошибка синхронизации с iiko не должна блокировать заказ, если это не критично
+        print(f"Iiko loyalty sync error: {e}")
+
+    # Проверяем возможность списания бонусов
+    bonus_spent = Decimal("0.00")
+    if order_data.bonus_spent and order_data.bonus_spent > 0:
+        if order_data.bonus_spent > customer.bonus_points:
+            raise HTTPException(
+                status_code=status.HTTP_400_BAD_REQUEST,
+                detail=f"Недостаточно бонусов. Доступно: {customer.bonus_points}"
+            )
+        bonus_spent = order_data.bonus_spent
+
+    # Обработка промокода
+    promo_code_id = None
+    promo_discount = Decimal("0.00")
+    
+    if order_data.promo_code:
+        promo = session.exec(select(PromoCode).where(PromoCode.code == order_data.promo_code)).first()
+        if not promo or not promo.is_active:
+            raise HTTPException(
+                status_code=status.HTTP_400_BAD_REQUEST,
+                detail="Промокод не найден или неактивен"
+            )
+        
+        # Проверка дат
+        today = datetime.utcnow().date()
+        if (promo.valid_from and today < promo.valid_from) or (promo.valid_until and today > promo.valid_until):
+             raise HTTPException(
+                status_code=status.HTTP_400_BAD_REQUEST,
+                detail="Срок действия промокода истек или еще не наступил"
+            )
+        
+        # Проверка лимита использований
+        if promo.max_uses is not None and promo.current_uses >= promo.max_uses:
+            raise HTTPException(
+                status_code=status.HTTP_400_BAD_REQUEST,
+                detail="Промокод больше не действителен (превышен лимит использований)"
+            )
+        
+        # Проверка "один раз для клиента"
+        if promo.usage_type == "single_per_user":
+            existing_order = session.exec(
+                select(Order).where(Order.customer_id == customer.id, Order.promo_code_id == promo.id)
+            ).first()
+            if existing_order:
+                raise HTTPException(
+                    status_code=status.HTTP_400_BAD_REQUEST,
+                    detail="Вы уже использовали этот промокод"
+                )
+        
+        # Проверка "только первый заказ"
+        if promo.first_order_only and customer.total_orders_count > 0:
+            raise HTTPException(
+                status_code=status.HTTP_400_BAD_REQUEST,
+                detail="Промокод доступен только для первого заказа"
+            )
+        
+        promo_code_id = promo.id
+        # Логика расчета скидки (процент или фикс) будет ниже после расчета base total
+
+    # Проверяем филиал
+    branch = session.get(Branch, order_data.branch_id)
+    if not branch:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail=f"Branch with id {order_data.branch_id} not found"
+        )
+    if not branch.is_active or not branch.is_accepting_orders:
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail=f"Branch '{branch.name}' is currently not accepting orders"
+        )
+
     # Проверяем товары и вычисляем сумму
     total_amount = Decimal("0.00")
     order_items_data = []
@@ -106,14 +222,64 @@ async def create_order(
             "total": item_total
         })
 
+    # Скидка (бонусы + промокод)
+    total_discount = bonus_spent
+    
+    # 1. Применяем промокод
+    if promo_code_id:
+        promo = session.get(PromoCode, promo_code_id)
+        if promo.promo_type == "percent":
+            promo_discount = (total_amount * promo.discount_value / Decimal("100")).quantize(Decimal("0.01"))
+        elif promo.promo_type == "fixed":
+            promo_discount = promo.discount_value
+        
+        # Лимит скидки по промокоду (не может быть больше суммы заказа)
+        promo_discount = min(promo_discount, total_amount - total_discount)
+        total_discount += promo_discount
+        
+        # Обновляем счетчик использований промокода
+        promo.current_uses += 1
+        session.add(promo)
+
+    # 2. Проверяем наличие подарков по акциям
+    actions = session.exec(select(Action).where(Action.is_active == True)).all()
+    for action in actions:
+        # Простая проверка суммы для примера (gift_product)
+        if action.action_type == "gift_product" and action.min_order_amount:
+            if total_amount >= action.min_order_amount:
+                # Добавляем подарок в позиции заказа
+                import json
+                try:
+                    gift_ids = json.loads(action.gift_product_ids) if action.gift_product_ids else []
+                    for g_id in gift_ids:
+                        gift_product = session.get(Product, g_id)
+                        if gift_product:
+                            order_items_data.append({
+                                "product_id": gift_product.id,
+                                "product_name": f"ПОДАРОК: {gift_product.name}",
+                                "quantity": 1,
+                                "price": Decimal("0.00"),
+                                "total": Decimal("0.00")
+                            })
+                except Exception as e:
+                    print(f"Error processing gift action: {e}")
+
+    # Итоговая сумма к оплате не может быть меньше 0
+    final_total = max(total_amount - total_discount, Decimal("0.00"))
+
     # Создаем заказ
     order = Order(
         telegram_user_id=order_data.telegram_user_id,
         telegram_username=order_data.telegram_username,
+        branch_id=order_data.branch_id,
+        customer_id=customer.id,
         customer_name=order_data.customer_name,
         customer_phone=order_data.customer_phone,
         delivery_address=order_data.delivery_address,
-        total_amount=total_amount,
+        total_amount=final_total,
+        bonus_spent=bonus_spent,
+        total_discount=total_discount,
+        promo_code_id=promo_code_id,
         comment=order_data.comment,
         status=OrderStatus.NEW
     )
@@ -139,12 +305,25 @@ async def create_order(
             for item in order_items_data
         ]
 
+        # Подготавливаем данные для скидок в iiko
+        discount_info = None
+        if order.bonus_spent > 0:
+            discount_info = {
+                "discounts": [
+                    {
+                        "type": "iikoCard",
+                        "sum": float(order.bonus_spent)
+                    }
+                ]
+            }
+
         iiko_response = await iiko_service.create_delivery_order(
             customer_name=order.customer_name,
             customer_phone=order.customer_phone,
             address=order.delivery_address,
             items=iiko_items,
-            comment=order.comment
+            comment=order.comment,
+            discount_info=discount_info
         )
 
         # Сохраняем ID заказа из iiko

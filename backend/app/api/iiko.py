@@ -1,7 +1,7 @@
 """
 API эндпоинты для синхронизации с iiko и управления настройками
 """
-from typing import List
+from typing import List, Optional
 from datetime import datetime
 from fastapi import APIRouter, Depends, HTTPException
 from sqlmodel import Session, select

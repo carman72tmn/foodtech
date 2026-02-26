@@ -1,0 +1,38 @@
+# IDEs
+.vscode/
+.idea/
+.DS_Store
+
+# Programming languages and environments
+node_modules/
+**/node_modules/
+venv/
+__pycache__/
+*.pyc
+.env
+
+# Laravel
+/admin/vendor/
+/admin/public/storage
+/admin/public/hot
+/admin/storage/*.key
+/admin/storage/framework/cache/data/*
+/admin/storage/framework/sessions/*
+/admin/storage/framework/testing/*
+/admin/storage/framework/views/*
+/admin/storage/logs/*.log
+/admin/.phpunit.result.cache
+
+# FastAPI / Python
+backend/venv/
+backend/.pytest_cache/
+bot/venv/
+
+# Vite / Frontend
+/frontend/dist/
+frontend/node_modules/
+**/node_modules/
+
+# Backups and temp
+admin_backup_old/
+temp_sdk/

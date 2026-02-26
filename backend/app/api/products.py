@@ -4,8 +4,9 @@ API эндпоинты для работы с товарами
 from typing import List, Optional
 from fastapi import APIRouter, Depends, HTTPException, status
 from sqlmodel import Session, select
+from sqlalchemy.orm import selectinload
 from app.core.database import get_session
-from app.models.product import Product
+from app.models.product import Product, ProductModifierGroup
 from app.schemas import ProductCreate, ProductUpdate, ProductResponse
 
 router = APIRouter(prefix="/products", tags=["Products"])
@@ -27,7 +28,10 @@ async def get_products(
     - **category_id**: Фильтр по категории
     - **is_available**: Фильтр по доступности
     """
-    query = select(Product).order_by(Product.sort_order, Product.name).offset(skip).limit(limit)
+    query = select(Product).options(
+        selectinload(Product.sizes),
+        selectinload(Product.modifier_groups).selectinload(ProductModifierGroup.modifiers)
+    ).order_by(Product.sort_order, Product.name).offset(skip).limit(limit)
 
     if category_id is not None:
         query = query.where(Product.category_id == category_id)
@@ -42,7 +46,11 @@ async def get_products(
 @router.get("/{product_id}", response_model=ProductResponse)
 async def get_product(product_id: int, session: Session = Depends(get_session)):
     """Получить товар по ID"""
-    product = session.get(Product, product_id)
+    query = select(Product).options(
+        selectinload(Product.sizes),
+        selectinload(Product.modifier_groups).selectinload(ProductModifierGroup.modifiers)
+    ).where(Product.id == product_id)
+    product = session.exec(query).first()
     if not product:
         raise HTTPException(
             status_code=status.HTTP_404_NOT_FOUND,
