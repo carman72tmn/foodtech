@@ -48,6 +48,10 @@ export const routes = [
         path: 'account-settings',
         component: () => import('@/pages/account-settings.vue'),
       },
+      {
+        path: 'reports/revenue',
+        component: () => import('@/pages/reports/revenue.vue'),
+      },
     ],
   },
   {

@@ -5,7 +5,7 @@
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 from app.core.config import settings
-from app.api import categories, products, orders, iiko, loyalty, promo_codes, webhooks, companies, branches, actions, nps, customers, mailings, stories, funnels
+from app.api import categories, products, orders, iiko, loyalty, promo_codes, webhooks, companies, branches, actions, nps, customers, mailings, stories, funnels, reports
 
 # Создание приложения FastAPI
 app = FastAPI(
@@ -40,6 +40,7 @@ app.include_router(customers.router, prefix="/api/v1")
 app.include_router(mailings.router, prefix="/api/v1")
 app.include_router(stories.router, prefix="/api/v1")
 app.include_router(funnels.router, prefix="/api/v1")
+app.include_router(reports.router, prefix="/api/v1")
 app.include_router(webhooks.router, prefix="/api/v1/webhooks", tags=["Webhooks"])
 
 

@@ -18,6 +18,7 @@ from .nps import NpsReview
 from .mailing import Mailing
 from .story import Story
 from .funnel import Funnel
+from .olap_revenue import OlapRevenueRecord
 
 __all__ = [
     "User",
@@ -44,5 +45,6 @@ __all__ = [
     "NpsReview",
     "Mailing",
     "Story",
-    "Funnel"
+    "Funnel",
+    "OlapRevenueRecord",
 ]

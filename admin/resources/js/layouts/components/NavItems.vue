@@ -52,6 +52,7 @@ import VerticalNavLink from "@layouts/components/VerticalNavLink.vue"
   </VerticalNavGroup>
 
   <VerticalNavGroup :item="{ title: 'Отчеты', icon: 'bx-bar-chart-alt-2' }">
+    <VerticalNavLink :item="{ title: 'Выручка', to: '/reports/revenue' }" />
     <VerticalNavLink :item="{ title: 'Продажи', to: '/reports/sales' }" />
     <VerticalNavLink :item="{ title: 'Продажи (по товарам)', to: '/reports/products' }" />
     <VerticalNavLink :item="{ title: 'Продажи (по дням)', to: '/reports/days' }" />

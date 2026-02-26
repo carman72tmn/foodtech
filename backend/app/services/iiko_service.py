@@ -627,5 +627,120 @@ class IikoService:
             "iiko_response": result
         }
 
+    # =========================================================================
+    # OLAP Отчёты
+    # =========================================================================
+
+    async def get_olap_report(
+        self,
+        date_from: datetime,
+        date_to: datetime,
+        api_login: Optional[str] = None,
+        organization_id: Optional[str] = None,
+        include_deleted: bool = False,
+    ) -> List[Dict[str, Any]]:
+        """
+        Получение OLAP-отчёта по выручке из iiko Cloud API.
+        Группировка: Торговое предприятие.
+        Возвращает список строк с данными по каждому предприятию.
+        """
+        org_id = organization_id or self.organization_id
+
+        # Формируем строки дат в формате API iiko: yyyy-MM-dd HH:mm:ss.fff
+        fmt = "%Y-%m-%d %H:%M:%S.000"
+
+        # Базовые фильтры — только незамененные и не-удалённые заказы
+        filters = [
+            {
+                "filterType": "OrderDeleted",
+                "field": "OrderDeleted",
+                "relation": "is",
+                "values": ["NOT_DELETED"]
+            }
+        ]
+        if include_deleted:
+            filters = []  # Если нужны все — убираем фильтры
+
+        payload = {
+            "organizationIds": [org_id],
+            "groupByRowFields": [
+                "BusinessDate",
+                "Department"
+            ],
+            "aggregateFields": [
+                "OrderSum",
+                "DiscountSum",
+                "GuestNum",
+                "DishDiscountSumInt",
+                "costPrice",
+                "costPricePercent",
+                "profitability",
+                "profitabilityPercent",
+            ],
+            "filters": filters,
+            "reportTimeRangeSettings": {
+                "dateFrom": date_from.strftime(fmt),
+                "dateTo": date_to.strftime(fmt)
+            }
+        }
+
+        try:
+            response = await self._request(
+                "POST",
+                "/api/1/reports/olap",
+                payload,
+                api_login=api_login,
+                organization_id=org_id
+            )
+
+            # Ответ содержит correlationId и data (список строк)
+            rows = response.get("data", [])
+            columns = response.get("columnNames", [])
+
+            result = []
+            for row in rows:
+                # Строки могут быть в виде списка значений, сопоставим с именами колонок
+                if isinstance(row, list):
+                    row_dict = dict(zip(columns, row))
+                else:
+                    row_dict = row
+
+                # Преобразуем в единый формат
+                result.append({
+                    "organization_id": org_id,
+                    "organization_name": row_dict.get("Department", row_dict.get("department", "")),
+                    "business_date": row_dict.get("BusinessDate", row_dict.get("businessDate", "")),
+                    "average_check": self._safe_float(row_dict.get("OrderSum", 0)) / max(1, self._safe_int(row_dict.get("GuestNum", 1))),
+                    "markup": self._safe_float(row_dict.get("profitability", 0)),
+                    "markup_percent": self._safe_float(row_dict.get("profitabilityPercent", 0)),
+                    "cost_price": self._safe_float(row_dict.get("costPrice", 0)),
+                    "cost_price_percent": self._safe_float(row_dict.get("costPricePercent", 0)),
+                    "discount_sum": self._safe_float(row_dict.get("DiscountSum", 0)),
+                    "revenue": self._safe_float(row_dict.get("OrderSum", 0)),
+                    "orders_count": self._safe_int(row_dict.get("GuestNum", 0)),
+                })
+            return result
+
+        except Exception as e:
+            logger.error(f"iiko OLAP report error: {e}")
+            raise
+
+    @staticmethod
+    def _safe_float(value) -> float:
+        """Безопасное преобразование значения к float"""
+        try:
+            return float(value) if value is not None else 0.0
+        except (TypeError, ValueError):
+            return 0.0
+
+    @staticmethod
+    def _safe_int(value) -> int:
+        """Безопасное преобразование значения к int"""
+        try:
+            return int(value) if value is not None else 0
+        except (TypeError, ValueError):
+            return 0
+
+
 # Глобальный экземпляр сервиса
 iiko_service = IikoService()
