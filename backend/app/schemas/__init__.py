@@ -45,6 +45,9 @@ class BranchBase(BaseModel):
     is_accepting_orders: bool = True
     is_accepting_delivery: bool = True
     is_accepting_pickup: bool = True
+    min_order_amount: float = 0.0
+    free_delivery_threshold: float = 0.0
+    working_hours: Optional[str] = None
     company_id: int
     iiko_terminal_id: Optional[str] = None
 
@@ -61,6 +64,9 @@ class BranchUpdate(BaseModel):
     is_accepting_orders: Optional[bool] = None
     is_accepting_delivery: Optional[bool] = None
     is_accepting_pickup: Optional[bool] = None
+    min_order_amount: Optional[float] = None
+    free_delivery_threshold: Optional[float] = None
+    working_hours: Optional[str] = None
     company_id: Optional[int] = None
     iiko_terminal_id: Optional[str] = None
 

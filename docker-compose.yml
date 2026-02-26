@@ -1,0 +1,93 @@
+services:
+  db:
+    image: postgres:15-alpine
+    container_name: foodtech-db
+    restart: always
+    environment:
+      POSTGRES_DB: ${DB_DATABASE:-foodtech_db}
+      POSTGRES_USER: ${DB_USERNAME:-foodtech_user}
+      POSTGRES_PASSWORD: ${DB_PASSWORD:-postgres}
+    ports:
+      - "5432:5432"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ${DB_USERNAME:-foodtech_user} -d ${DB_DATABASE:-foodtech_db}"]
+      interval: 5s
+      timeout: 5s
+      retries: 5
+
+  redis:
+    image: redis:alpine
+    container_name: foodtech-redis
+    restart: always
+    ports:
+      - "6379:6379"
+
+  backend:
+    build:
+      context: ./backend
+    container_name: foodtech-backend
+    restart: always
+    environment:
+      - DATABASE_URL=postgresql://${DB_USERNAME:-foodtech_user}:${DB_PASSWORD:-postgres}@db:5432/${DB_DATABASE:-foodtech_db}
+      - REDIS_URL=redis://redis:6379/0
+      - API_RELOAD=True
+    ports:
+      - "8000:8000"
+    depends_on:
+      db:
+        condition: service_healthy
+      redis:
+        condition: service_started
+    volumes:
+      - ./backend:/app
+
+  bot:
+    build:
+      context: ./bot
+    container_name: foodtech-bot
+    restart: always
+    environment:
+      - API_URL=http://backend:8000/api/v1
+    depends_on:
+      - backend
+    volumes:
+      - ./bot:/app
+
+  admin:
+    build:
+      context: ./admin
+    container_name: foodtech-admin
+    restart: always
+    environment:
+      - DB_HOST=db
+      - DB_CONNECTION=pgsql
+      - DB_PORT=5432
+      - DB_DATABASE=${DB_DATABASE:-foodtech_db}
+      - DB_USERNAME=${DB_USERNAME:-foodtech_user}
+      - DB_PASSWORD=${DB_PASSWORD:-postgres}
+      - REDIS_HOST=redis
+    ports:
+      - "8081:8000"
+      - "5174:5173"
+    depends_on:
+      db:
+        condition: service_healthy
+    volumes:
+      - ./admin:/var/www/html
+      - /var/www/html/node_modules
+
+  frontend:
+    build:
+      context: ./frontend
+    container_name: foodtech-frontend
+    restart: always
+    ports:
+      - "5173:5173"
+    volumes:
+      - ./frontend:/app
+      - /app/node_modules
+
+volumes:
+  postgres_data:

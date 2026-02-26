@@ -46,10 +46,15 @@ return new class extends Migration
                 $table->id();
                 $table->bigInteger('telegram_user_id')->index();
                 $table->string('telegram_username')->nullable();
+                $table->unsignedBigInteger('branch_id')->nullable()->index();
+                $table->unsignedBigInteger('customer_id')->nullable()->index();
                 $table->string('customer_name');
                 $table->string('customer_phone');
                 $table->string('delivery_address', 500);
                 $table->decimal('total_amount', 10, 2);
+                $table->decimal('bonus_spent', 10, 2)->default(0);
+                $table->decimal('total_discount', 10, 2)->default(0);
+                $table->unsignedBigInteger('promo_code_id')->nullable()->index();
                 $table->string('status')->default('new');
                 $table->string('iiko_order_id')->nullable()->unique()->index();
                 $table->text('comment')->nullable();

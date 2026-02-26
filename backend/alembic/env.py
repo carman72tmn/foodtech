@@ -24,6 +24,27 @@ if config.config_file_name is not None:
 target_metadata = SQLModel.metadata
 
 
+def include_none_laravel_tables(object, name, type_, reflected, compare_to):
+    """
+    Фильтр для игнорирования таблиц, управляемых Laravel
+    """
+    if type_ == "table":
+        ignore_tables = [
+            "migrations",
+            "sessions",
+            "password_reset_tokens",
+            "cache",
+            "cache_locks",
+            "jobs",
+            "job_batches",
+            "failed_jobs",
+            "personal_access_tokens",
+            "nps_reviews",
+            "telegram_bots"
+        ]
+        return name not in ignore_tables
+    return True
+
 def run_migrations_offline() -> None:
     """
     Запуск миграций в 'offline' режиме.
@@ -35,6 +56,7 @@ def run_migrations_offline() -> None:
         target_metadata=target_metadata,
         literal_binds=True,
         dialect_opts={"paramstyle": "named"},
+        include_object=include_none_laravel_tables
     )
 
     with context.begin_transaction():
@@ -55,7 +77,8 @@ def run_migrations_online() -> None:
     with connectable.connect() as connection:
         context.configure(
             connection=connection,
-            target_metadata=target_metadata
+            target_metadata=target_metadata,
+            include_object=include_none_laravel_tables
         )
 
         with context.begin_transaction():

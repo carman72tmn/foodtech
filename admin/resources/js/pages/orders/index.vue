@@ -1,13 +1,18 @@
 <script setup>
 import { ref, onMounted, onUnmounted } from "vue"
+import OrderDetailModal from "../../components/OrderDetailModal.vue"
 
 const loading = ref(false)
+const syncing = ref(false)
 const snackbar = ref(false)
 const snackbarColor = ref("success")
 const snackbarText = ref("")
 
 const orders = ref([])
-const expanded = ref([])
+
+// Для модального окна деталей заказа
+const isModalOpen = ref(false)
+const selectedOrder = ref(null)
 
 const API_BASE = "/api/v1/orders"
 
@@ -20,7 +25,6 @@ const headers = [
   { title: "Сумма", key: "total_amount", sortable: true },
   { title: "Статус", key: "status", sortable: true },
   { title: "Создан", key: "created_at", sortable: true },
-  { title: "", key: "data-table-expand", sortable: false },
 ]
 
 const statusColors = {
@@ -65,6 +69,29 @@ const loadOrders = async (silent = false) => {
   }
 }
 
+const syncRecentOrders = async () => {
+  syncing.value = true
+  try {
+    const res = await fetch(`${API_BASE}/sync`, { method: 'POST' })
+    if (res.ok) {
+      showMessage("Синхронизация запущена в фоновом режиме", "info")
+      // Перезагрузим список через пару секунд чтобы увидеть первые результаты
+      setTimeout(() => loadOrders(false), 3000)
+    } else {
+      showMessage("Ошибка при запуске синхронизации", "error")
+    }
+  } catch (e) {
+    showMessage("Ошибка соединения при синхронизации", "error")
+  } finally {
+    syncing.value = false
+  }
+}
+
+const openOrderDetails = (order) => {
+  selectedOrder.value = order
+  isModalOpen.value = true
+}
+
 const cancelOrder = async (id) => {
   if (!confirm("Вы уверены, что хотите отменить этот заказ?")) return
   
@@ -75,6 +102,11 @@ const cancelOrder = async (id) => {
     if (res.ok) {
       showMessage("Заказ успешно отменен")
       loadOrders(false)
+      // Если отменяем из открытого модального окна, обновим и его данные
+      if (selectedOrder.value && selectedOrder.value.id === id) {
+        const updatedOrd = await res.json()
+        selectedOrder.value = updatedOrd
+      }
     } else {
       const data = await res.json()
       showMessage(data.detail || "Ошибка при отмене", "error")
@@ -116,21 +148,25 @@ onUnmounted(() => {
           <VIcon icon="bx-cart" class="me-2" />
           Управление заказами
           <VSpacer />
-          <VBtn color="primary" @click="loadOrders(false)" class="me-2" :loading="loading" variant="tonal" size="small">
+          <VBtn color="warning" @click="syncRecentOrders" class="me-2" :loading="syncing" variant="tonal" size="small">
+            <VIcon icon="bx-cloud-download" /> Обновить (23ч) из iiko
+          </VBtn>
+          <VBtn color="primary" @click="loadOrders(false)" :loading="loading" variant="tonal" size="small">
             <VIcon icon="bx-refresh" /> Обновить
           </VBtn>
         </VCardTitle>
         <VCardText>
           <VDataTable
-            v-model:expanded="expanded"
             :headers="headers"
             :items="orders"
             :loading="loading"
             :items-per-page="15"
             item-value="id"
-            show-expand
             class="elevation-1"
             density="compact"
+            hover
+            @click:row="(_, { item }) => openOrderDetails(item)"
+            style="cursor: pointer"
           >
             <template #item.iiko_order_id="{ item }">
               <span v-if="item.iiko_order_id" class="text-caption text-medium-emphasis">
@@ -157,69 +193,13 @@ onUnmounted(() => {
               {{ formatDate(item.created_at) }}
             </template>
             
-            <template #expanded-row="{ columns, item }">
-              <tr>
-                <td :colspan="columns.length" class="pa-4 bg-var-theme-background">
-                  <VRow>
-                    <VCol cols="12" md="8">
-                      <h4 class="mb-2">Состав заказа</h4>
-                      <VTable density="compact" class="elevation-1">
-                        <thead>
-                          <tr>
-                            <th>Товар</th>
-                            <th>Кол-во</th>
-                            <th>Цена</th>
-                            <th>Сумма</th>
-                          </tr>
-                        </thead>
-                        <tbody>
-                          <tr v-for="orderItem in item.items" :key="orderItem.id">
-                            <td>{{ orderItem.product_name }}</td>
-                            <td>{{ orderItem.quantity }} шт.</td>
-                            <td>{{ orderItem.price }} ₽</td>
-                            <td><strong>{{ orderItem.total }} ₽</strong></td>
-                          </tr>
-                        </tbody>
-                      </VTable>
-                      <div class="mt-2 text-wrap">
-                        <strong class="text-caption">Комментарий клиента:</strong>
-                        <p class="text-body-2 font-italic">{{ item.comment || 'Нет комментария' }}</p>
-                      </div>
-                    </VCol>
-                    <VCol cols="12" md="4">
-                      <h4 class="mb-2">Действия с заказом</h4>
-                      <div class="d-flex flex-column gap-2">
-                        <VBtn size="small" color="primary" variant="outlined" block>
-                          <VIcon icon="bx-sync" class="me-2" /> Синхронизировать с iiko
-                        </VBtn>
-                        <VBtn 
-                          size="small" 
-                          color="error" 
-                          variant="tonal" 
-                          block 
-                          @click="cancelOrder(item.id)"
-                          :disabled="['delivered', 'cancelled'].includes(item.status)"
-                        >
-                          <VIcon icon="bx-x" class="me-2" /> Отменить заказ
-                        </VBtn>
-                        <div class="mt-4">
-                           <small class="text-medium-emphasis">Telegram: 
-                             <a v-if="item.telegram_username" :href="`https://t.me/${item.telegram_username}`" target="_blank">@{{ item.telegram_username }}</a>
-                             <span v-else>{{ item.telegram_user_id }}</span>
-                           </small>
-                        </div>
-                      </div>
-                    </VCol>
-                  </VRow>
-                </td>
-              </tr>
-            </template>
-            
           </VDataTable>
         </VCardText>
       </VCard>
     </VCol>
   </VRow>
+
+  <OrderDetailModal v-model="isModalOpen" :order="selectedOrder" />
 
   <VSnackbar v-model="snackbar" :color="snackbarColor" :timeout="3000" location="top">
     {{ snackbarText }}

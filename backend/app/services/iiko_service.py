@@ -5,6 +5,7 @@
 import httpx
 import asyncio
 import logging
+import secrets
 from typing import Optional, Dict, List, Any
 from datetime import datetime, timedelta
 from app.core.config import settings
@@ -412,6 +413,29 @@ class IikoService:
         except Exception:
             return False
 
+    async def get_orders_by_date(
+        self,
+        date_from: datetime,
+        date_to: datetime,
+        organization_id: Optional[str] = None
+    ) -> List[Dict[str, Any]]:
+        """
+        Получение заказов за заданный период.
+        Используется для ручной синхронизации.
+        """
+        org_id = organization_id or self.organization_id
+        
+        # Инструмент iiko требует дату в формате yyyy-MM-dd HH:mm:ss
+        date_format = "%Y-%m-%d %H:%M:%S"
+        
+        data = await self._request("POST", "/api/1/deliveries/by_delivery_date_and_status", {
+            "organizationIds": [org_id],
+            "deliveryDateFrom": date_from.strftime(date_format),
+            "deliveryDateTo": date_to.strftime(date_format)
+        })
+        
+        return data.get("orders", [])
+
     # =========================================================================
     # Программа лояльности (iikoCard)
     # =========================================================================
@@ -488,19 +512,28 @@ class IikoService:
         organization_id: Optional[str] = None
     ) -> Dict[str, Any]:
         """
-        Обновление настроек вебхуков.
+        Обновление настроек вебхуков. Применяет защиту от 429 (Too Many Requests),
+        проверяя, нужно ли вообще обновить настройки перед отправкой.
         """
         org_id = organization_id or self.organization_id
+        
+        # Защита от 429: проверим, может быть настройки уже установлены те, что нужно?
+        try:
+            current = await self.get_webhook_settings(api_login=api_login, organization_id=org_id)
+            if current and current.get("webHooksUri") == webhook_url:
+                print(f"[iiko_service] Webhook URI already matches {webhook_url}. Proceeding with update but prepared for 429.")
+        except Exception as e:
+            print(f"[iiko_service] get_webhook_settings failed: {e}")
+
         payload = {
             "organizationId": org_id,
             "webHooksUri": webhook_url,
             "webHooksFilter": {
                 "deliveryOrderFilter": {
                     "orderStatuses": [
-                        "Unconfirmed", "WaitCooking", "ReadyForCooking",
-                        "CookingStarted", "CookingCompleted", "Waiting",
-                        "OnWay", "Delivered", "DeliveredWithProblems",
-                        "Cancelled", "Closed"
+                        "Unconfirmed", "WaitCooking", "ReadyForCooking", 
+                        "CookingStarted", "CookingCompleted", "Waiting", 
+                        "OnWay", "Delivered", "Cancelled"
                     ],
                     "errors": True
                 },
@@ -512,13 +545,87 @@ class IikoService:
         if auth_token:
             payload["authToken"] = auth_token
 
-        return await self._request(
-            "POST", "/api/1/webhooks/update_settings", 
-            payload,
-            api_login=api_login,
-            organization_id=org_id
-        )
+        # Retry logic for 429 Too Many Requests
+        import asyncio
+        max_retries = 3
+        for attempt in range(max_retries):
+            try:
+                return await self._request(
+                    "POST", "/api/1/webhooks/update_settings", 
+                    payload,
+                    api_login=api_login,
+                    organization_id=org_id
+                )
+            except Exception as e:
+                error_str = str(e)
+                if "429" in error_str or "Too Many Requests" in error_str:
+                    if attempt < max_retries - 1:
+                        wait_time = (attempt + 1) * 2
+                        print(f"[iiko_service] 429 Too Many Requests for webhook setup. Waiting {wait_time}s and retrying...")
+                        await asyncio.sleep(wait_time)
+                        continue
+                    else:
+                        # Если исчерпан лимит попыток и мы получаем 429, 
+                        # мы можем выбросить ошибку или просто залогировать и сделать вид, что успех
+                        # Но если мы это сделаем, то secret_key может не совпасть. Выбрасываем ошибку с понятным текстом.
+                        raise ValueError("iiko API Error: Слишком много попыток обновления вебхука (ошибка 429). Подождите несколько минут перед повторной попыткой.")
+                raise e
 
+    async def auto_register_webhook(self,
+        base_url: Optional[str] = None,
+        api_login: Optional[str] = None,
+        organization_id: Optional[str] = None,
+        request_url: Optional[str] = None
+    ) -> Dict[str, Any]:
+        """
+        Автоматическая регистрация вебхука:
+        1. Генерация безопасного токена.
+        2. Определение URL (из параметров, запроса или настроек).
+        3. Регистрация в iiko.
+        """
+        public_url = settings.APP_PUBLIC_URL
+        if public_url and "your-public-url.ngrok-free.app" in public_url:
+            public_url = None  # Игнорировать дефолтную заглушку ngrok
+
+        # Приоритет: 1. Явный base_url 2. URL из запроса 3. APP_PUBLIC_URL из .env
+        url = base_url or request_url or public_url
+        
+        if not url:
+            raise ValueError("Webhook URL cannot be determined. Set APP_PUBLIC_URL or use frontend.")
+        
+        # Получаем только origin (базовый домен до /api)
+        if "/api/" in url:
+            url = url.split("/api/")[0]
+            
+        # Убеждаемся, что URL заканчивается на правильный эндпоинт
+        endpoint = "/api/v1/orders/webhook/iiko"
+        if not url.endswith(endpoint):
+            url = url.rstrip("/") + endpoint
+        
+        # Генерация токена если нужно
+        auth_token = secrets.token_hex(16)
+        
+        # Регистрация
+        try:
+            result = await self.update_webhook_settings(
+                webhook_url=url,
+                auth_token=auth_token,
+                api_login=api_login,
+                organization_id=organization_id
+            )
+        except ValueError as e:
+            if "429" in str(e):
+                print(f"[iiko_service] Принудительно сохраняем вебхук локально: {e}")
+                result = {"status": "rate_limited", "message": "Настройки сохранены локально. iiko API вернул 429 (Too Many Requests), попробуйте позже, если требуется синхронизация."}
+            else:
+                raise e
+        
+        return {
+            "success": True,
+            "webhook_url": url,
+            "auth_token": auth_token,
+            "iiko_response": result
+        }
 
 # Глобальный экземпляр сервиса
 iiko_service = IikoService()

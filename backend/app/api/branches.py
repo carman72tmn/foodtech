@@ -5,13 +5,97 @@ from typing import List
 from fastapi import APIRouter, Depends, HTTPException, status
 from sqlmodel import Session, select
 from app.core.database import get_session
-from app.models.company import Branch, DeliveryZone
+from app.models.company import Company, Branch, DeliveryZone
+from app.services.iiko_service import iiko_service
 from app.schemas import (
     BranchCreate, BranchUpdate, BranchResponse,
     DeliveryZoneCreate, DeliveryZoneUpdate, DeliveryZoneResponse
 )
 
 router = APIRouter(prefix="/branches", tags=["Branches"])
+
+# ============= Синхронизация =============
+
+@router.post("/sync", response_model=dict)
+async def sync_iiko_branches(session: Session = Depends(get_session)):
+    """Синхронизация организаций и филиалов из iiko"""
+    try:
+        # 1. Получаем организации (Company)
+        organizations = await iiko_service.get_organizations()
+        
+        synced_companies = 0
+        synced_branches = 0
+        
+        for org in organizations:
+            org_id = org.get("id")
+            org_name = org.get("name")
+            
+            if not org_id or not org_name:
+                continue
+                
+            # Ищем компанию по iiko_organization_id
+            company = session.exec(select(Company).where(Company.iiko_organization_id == org_id)).first()
+            if not company:
+                # Попробуем по имени
+                company = session.exec(select(Company).where(Company.name == org_name)).first()
+                if company:
+                    company.iiko_organization_id = org_id
+                else:
+                    company = Company(name=org_name, iiko_organization_id=org_id)
+                    session.add(company)
+            else:
+                company.name = org_name
+            
+            session.commit()
+            session.refresh(company)
+            synced_companies += 1
+
+        # 2. Получаем терминальные группы (Branch)
+        terminal_groups = await iiko_service.get_terminal_groups()
+        
+        for tg in terminal_groups:
+            tg_id = tg.get("id")
+            tg_name = tg.get("name")
+            tg_org_id = tg.get("organizationId")
+            
+            if not tg_id or not tg_org_id or not tg_name:
+                continue
+                
+            # Ищем к какой компании относится филиал
+            company = session.exec(select(Company).where(Company.iiko_organization_id == tg_org_id)).first()
+            if not company:
+                continue
+                
+            # Ищем филиал по iiko_terminal_id
+            branch = session.exec(select(Branch).where(Branch.iiko_terminal_id == tg_id)).first()
+            if not branch:
+                # Пробуем по имени для текущей компании
+                branch = session.exec(select(Branch).where(Branch.name == tg_name, Branch.company_id == company.id)).first()
+                if branch:
+                    branch.iiko_terminal_id = tg_id
+                else:
+                    # Создаем новый филиал, берем address из поля, либо используем название как запасной вариант
+                    address = tg.get("address") or tg_name
+                    branch = Branch(
+                        name=tg_name, 
+                        address=address,
+                        company_id=company.id,
+                        iiko_terminal_id=tg_id
+                    )
+                    session.add(branch)
+            else:
+                branch.name = tg_name
+                
+            session.commit()
+            session.refresh(branch)
+            synced_branches += 1
+            
+        return {
+            "success": True, 
+            "message": f"Синхронизировано компаний: {synced_companies}, филиалов: {synced_branches}"
+        }
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f"Ошибка синхронизации с iiko: {str(e)}")
 
 # ============= Филиалы =============
 

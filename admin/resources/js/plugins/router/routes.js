@@ -33,6 +33,10 @@ export const routes = [
         component: () => import('@/pages/loyalty/index.vue'),
       },
       {
+        path: 'branches',
+        component: () => import('@/pages/branches/index.vue'),
+      },
+      {
         path: 'promo',
         component: () => import('@/pages/promo/index.vue'),
       },

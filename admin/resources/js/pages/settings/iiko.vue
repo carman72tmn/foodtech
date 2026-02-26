@@ -5,7 +5,7 @@ import { ref, onMounted, computed } from "vue";
 // Состояние формы
 // =========================================================================
 
-const loading = ref(false);
+const loading = ref(false)
 const saving = ref(false);
 const testing = ref(false);
 const snackbar = ref(false);
@@ -242,8 +242,28 @@ const registerWebhook = async () => {
       showMessage("Вебхук успешно зарегистрирован");
     } else {
       const err = await res.json();
-
       showMessage(err.detail || "Ошибка регистрации", "error");
+    }
+  } catch (e) {
+    showMessage("Ошибка сети", "error");
+  } finally {
+    registeringWebhook.value = false;
+  }
+};
+
+const autoRegisterWebhook = async () => {
+  registeringWebhook.value = true;
+  try {
+    const res = await fetch(`${API_BASE}/webhooks/register`, { method: "POST" });
+
+    if (res.ok) {
+      const data = await res.json();
+      settings.value.webhook_url = data.webhook_url;
+      settings.value.webhook_auth_token = data.auth_token;
+      showMessage("Вебхук автоматически зарегистрирован!");
+    } else {
+      const err = await res.json();
+      showMessage(err.detail || "Ошибка авто-регистрации", "error");
     }
   } catch (e) {
     showMessage("Ошибка сети", "error");
@@ -267,7 +287,8 @@ onMounted(async () => {
 <template>
   <VRow>
     <VCol cols="12">
-      <VTabs v-model="activeTab" class="mb-4">
+      <VTabs v-model="activeTab"
+class="mb-4">
         <VTab value="general"> Основные настройки </VTab>
         <VTab value="webhooks"> Вебхуки </VTab>
       </VTabs>
@@ -279,7 +300,8 @@ onMounted(async () => {
             <VCol cols="12">
               <VCard>
                 <VCardTitle class="d-flex align-center">
-                  <VIcon icon="mdi-connection" class="me-2" />
+                  <VIcon icon="mdi-connection"
+class="me-2" />
                   Подключение к iiko Cloud API
                   <VSpacer />
                   <VChip
@@ -301,7 +323,8 @@ onMounted(async () => {
                 </VCardTitle>
                 <VCardText>
                   <VRow>
-                    <VCol cols="12" md="8">
+                    <VCol cols="12"
+md="8">
                       <VTextField
                         v-model.trim="settings.api_login"
                         label="API Login (Cloud API Key)"
@@ -311,7 +334,8 @@ onMounted(async () => {
                         prepend-inner-icon="mdi-key"
                       />
                     </VCol>
-                    <VCol cols="12" md="4" class="d-flex align-center">
+                    <VCol cols="12"
+md="4" class="d-flex align-center">
                       <VBtn
                         color="primary"
                         variant="elevated"
@@ -329,10 +353,12 @@ onMounted(async () => {
             </VCol>
 
             <!-- ==================== Организация ==================== -->
-            <VCol cols="12" md="6">
+            <VCol cols="12"
+md="6">
               <VCard>
                 <VCardTitle>
-                  <VIcon icon="mdi-office-building" class="me-2" />
+                  <VIcon icon="mdi-office-building"
+class="me-2" />
                   Организация
                 </VCardTitle>
                 <VCardText>
@@ -349,10 +375,12 @@ onMounted(async () => {
             </VCol>
 
             <!-- ==================== Терминальная группа ==================== -->
-            <VCol cols="12" md="6">
+            <VCol cols="12"
+md="6">
               <VCard>
                 <VCardTitle>
-                  <VIcon icon="mdi-monitor" class="me-2" />
+                  <VIcon icon="mdi-monitor"
+class="me-2" />
                   Терминальная группа
                 </VCardTitle>
                 <VCardText>
@@ -369,10 +397,12 @@ onMounted(async () => {
             </VCol>
 
             <!-- ==================== Внешнее меню ==================== -->
-            <VCol cols="12" md="6">
+            <VCol cols="12"
+md="6">
               <VCard>
                 <VCardTitle>
-                  <VIcon icon="mdi-food" class="me-2" />
+                  <VIcon icon="mdi-food"
+class="me-2" />
                   Внешнее меню
                 </VCardTitle>
                 <VCardText>
@@ -389,10 +419,12 @@ onMounted(async () => {
             </VCol>
 
             <!-- ==================== Скидки ==================== -->
-            <VCol cols="12" md="6">
+            <VCol cols="12"
+md="6">
               <VCard>
                 <VCardTitle>
-                  <VIcon icon="mdi-percent" class="me-2" />
+                  <VIcon icon="mdi-percent"
+class="me-2" />
                   Скидка
                 </VCardTitle>
                 <VCardText>
@@ -412,12 +444,14 @@ onMounted(async () => {
             <VCol cols="12">
               <VCard>
                 <VCardTitle>
-                  <VIcon icon="mdi-credit-card" class="me-2" />
+                  <VIcon icon="mdi-credit-card"
+class="me-2" />
                   Типы оплаты
                 </VCardTitle>
                 <VCardText>
                   <VRow>
-                    <VCol cols="12" md="3">
+                    <VCol cols="12"
+md="3">
                       <VSelect
                         v-model="settings.payment_type_cash"
                         :items="paymentTypes"
@@ -425,7 +459,8 @@ onMounted(async () => {
                         clearable
                       />
                     </VCol>
-                    <VCol cols="12" md="3">
+                    <VCol cols="12"
+md="3">
                       <VSelect
                         v-model="settings.payment_type_card"
                         :items="paymentTypes"
@@ -433,7 +468,8 @@ onMounted(async () => {
                         clearable
                       />
                     </VCol>
-                    <VCol cols="12" md="3">
+                    <VCol cols="12"
+md="3">
                       <VSelect
                         v-model="settings.payment_type_online"
                         :items="paymentTypes"
@@ -441,7 +477,8 @@ onMounted(async () => {
                         clearable
                       />
                     </VCol>
-                    <VCol cols="12" md="3">
+                    <VCol cols="12"
+md="3">
                       <VSelect
                         v-model="settings.payment_type_bonus"
                         :items="paymentTypes"
@@ -455,10 +492,12 @@ onMounted(async () => {
             </VCol>
 
             <!-- ==================== Бонусная программа ==================== -->
-            <VCol cols="12" md="6">
+            <VCol cols="12"
+md="6">
               <VCard>
                 <VCardTitle>
-                  <VIcon icon="mdi-star" class="me-2" />
+                  <VIcon icon="mdi-star"
+class="me-2" />
                   Бонусная программа
                 </VCardTitle>
                 <VCardText>
@@ -480,10 +519,12 @@ onMounted(async () => {
             </VCol>
 
             <!-- ==================== Флаги ==================== -->
-            <VCol cols="12" md="6">
+            <VCol cols="12"
+md="6">
               <VCard>
                 <VCardTitle>
-                  <VIcon icon="mdi-toggle-switch" class="me-2" />
+                  <VIcon icon="mdi-toggle-switch"
+class="me-2" />
                   Опции
                 </VCardTitle>
                 <VCardText>
@@ -512,12 +553,14 @@ onMounted(async () => {
             <VCol cols="12">
               <VCard>
                 <VCardTitle>
-                  <VIcon icon="mdi-alert" class="me-2" />
+                  <VIcon icon="mdi-alert"
+class="me-2" />
                   Резервные каналы при ошибке отправки заказа
                 </VCardTitle>
                 <VCardText>
                   <VRow>
-                    <VCol cols="12" md="6">
+                    <VCol cols="12"
+md="6">
                       <VTextField
                         v-model="settings.fallback_email"
                         label="Email для уведомлений"
@@ -525,7 +568,8 @@ onMounted(async () => {
                         type="email"
                       />
                     </VCol>
-                    <VCol cols="12" md="6">
+                    <VCol cols="12"
+md="6">
                       <VTextField
                         v-model="settings.fallback_telegram_id"
                         label="Telegram ID для уведомлений"
@@ -538,7 +582,8 @@ onMounted(async () => {
             </VCol>
 
             <!-- ==================== Кнопки ==================== -->
-            <VCol cols="12" class="d-flex gap-4">
+            <VCol cols="12"
+class="d-flex gap-4">
               <VBtn
                 color="primary"
                 size="large"
@@ -566,7 +611,8 @@ onMounted(async () => {
             <VCardTitle>Настройки Webhook</VCardTitle>
             <VCardText>
               <VRow>
-                <VCol cols="12" md="8">
+                <VCol cols="12"
+md="8">
                   <VTextField
                     v-model="settings.webhook_url"
                     label="Webhook URL"
@@ -574,7 +620,8 @@ onMounted(async () => {
                     persistent-hint
                   />
                 </VCol>
-                <VCol cols="12" md="4">
+                <VCol cols="12"
+md="4">
                   <VTextField
                     v-model="settings.webhook_auth_token"
                     label="Auth Token"
@@ -586,13 +633,24 @@ onMounted(async () => {
                   <VBtn
                     color="primary"
                     :loading="registeringWebhook"
+                    prepend-icon="mdi-webhook"
                     @click="registerWebhook"
                   >
-                    Зарегистрировать вебхук в iiko
+                    Зарегистрировать вручную
+                  </VBtn>
+                  <VBtn
+                    color="success"
+                    variant="elevated"
+                    class="ms-2"
+                    :loading="registeringWebhook"
+                    prepend-icon="mdi-auto-fix"
+                    @click="autoRegisterWebhook"
+                  >
+                    Авто-генератор вебхука
                   </VBtn>
                   <VBtn
                     variant="outlined"
-                    class="ml-2"
+                    class="ms-2"
                     @click="loadWebhookLogs"
                   >
                     Обновить логи
@@ -613,7 +671,8 @@ onMounted(async () => {
                 </tr>
               </thead>
               <tbody>
-                <tr v-for="log in webhookLogs" :key="log.id">
+                <tr v-for="log in webhookLogs"
+:key="log.id">
                   <td>{{ new Date(log.created_at).toLocaleString() }}</td>
                   <td>{{ log.event_type }}</td>
                   <td>
@@ -632,7 +691,8 @@ onMounted(async () => {
                   </td>
                 </tr>
                 <tr v-if="webhookLogs.length === 0">
-                  <td colspan="4" class="text-center text-disabled">
+                  <td colspan="4"
+class="text-center text-disabled">
                     Нет событий
                   </td>
                 </tr>

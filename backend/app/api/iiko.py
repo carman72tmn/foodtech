@@ -3,7 +3,7 @@ API эндпоинты для синхронизации с iiko и управл
 """
 from typing import List, Optional
 from datetime import datetime
-from fastapi import APIRouter, Depends, HTTPException
+from fastapi import APIRouter, Depends, HTTPException, Request
 from sqlmodel import Session, select
 from app.core.database import get_session
 from app.models.iiko_settings import IikoSettings
@@ -274,30 +274,47 @@ async def get_customer_balance(phone: str):
 
 @router.post("/webhooks/register")
 async def register_webhook(
-    webhook_url: str,
-    auth_token: str = None,
+    request: Request,
+    webhook_url: Optional[str] = None,
+    auth_token: Optional[str] = None,
     session: Session = Depends(get_session)
 ):
     """
-    Регистрация вебхука в iiko и сохранение настроек
+    Регистрация вебхука в iiko и сохранение настроек.
+    Если webhook_url не передан, используется автоматическая регистрация.
     """
-    # 1. Сохраняем в БД
-    settings = session.exec(select(IikoSettings)).first()
-    if not settings:
+    settings_db = session.exec(select(IikoSettings)).first()
+    if not settings_db:
         raise HTTPException(status_code=404, detail="Settings not found")
     
-    settings.webhook_url = webhook_url
-    settings.webhook_auth_token = auth_token
-    session.add(settings)
-    session.commit()
-    session.refresh(settings)
-
-    # 2. Отправляем запрос в iiko
     try:
-        result = await iiko_service.update_webhook_settings(webhook_url, auth_token)
-        return {"success": True, "iiko_response": result}
+        if not webhook_url:
+            # Пытаемся определить базовый URL из текущего запроса если APP_PUBLIC_URL не задан
+            request_base_url = str(request.base_url)
+            
+            # Автоматическая регистрация
+            result = await iiko_service.auto_register_webhook(request_url=request_base_url)
+            
+            # Сохраняем сгенерированные данные в БД
+            settings_db.webhook_url = result["webhook_url"]
+            settings_db.webhook_auth_token = result["auth_token"]
+            session.add(settings_db)
+            session.commit()
+            
+            return result
+        else:
+            # Ручная регистрация (существующая логика)
+            settings_db.webhook_url = webhook_url
+            settings_db.webhook_auth_token = auth_token
+            session.add(settings_db)
+            session.commit()
+            
+            iiko_resp = await iiko_service.update_webhook_settings(webhook_url, auth_token)
+            return {"success": True, "iiko_response": iiko_resp}
+            
     except Exception as e:
-        raise HTTPException(status_code=500, detail=f"iiko API error: {str(e)}")
+        print(f"DEBUG: Webhook registration error: {e}")
+        raise HTTPException(status_code=400, detail=f"iiko API error: {str(e)}")
 
 
 @router.get("/webhooks/logs", response_model=List[IikoWebhookEventResponse])

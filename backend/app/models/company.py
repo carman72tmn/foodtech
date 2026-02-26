@@ -38,6 +38,11 @@ class BranchBase(SQLModel):
     is_accepting_delivery: bool = Field(default=True, description="Принимает ли заказы на доставку")
     is_accepting_pickup: bool = Field(default=True, description="Принимает ли заказы на самовывоз")
     
+    # Расширенные настройки (CRM Фаза 1)
+    min_order_amount: float = Field(default=0.0, description="Минимальная сумма заказа")
+    free_delivery_threshold: float = Field(default=0.0, description="Сумма для бесплатной доставки")
+    working_hours: Optional[str] = Field(default=None, description="Часы работы (напр. '10:00-22:00')")
+    
     # iiko sync correlation
     iiko_terminal_id: Optional[str] = None
 
