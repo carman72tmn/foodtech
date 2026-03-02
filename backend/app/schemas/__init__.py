@@ -285,15 +285,15 @@ class OrderUpdate(BaseModel):
 class OrderResponse(BaseModel):
     """Ответ API с заказом"""
     id: int
-    telegram_user_id: int
+    telegram_user_id: Optional[int] = None
     telegram_username: Optional[str] = None
-    customer_name: str
-    customer_phone: str
-    delivery_address: str
+    customer_name: Optional[str] = None
+    customer_phone: Optional[str] = None
+    delivery_address: Optional[str] = None
     total_amount: Decimal
     bonus_spent: Decimal
     total_discount: Decimal
-    branch_id: int
+    branch_id: Optional[int] = None
     promo_code_id: Optional[int] = None
     status: OrderStatus
     iiko_order_id: Optional[str] = None

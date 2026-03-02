@@ -47,11 +47,14 @@ async def get_orders(
     orders = session.exec(query).all()
 
     # Добавляем позиции к каждому заказу
+    result = []
     for order in orders:
         items_query = select(OrderItem).where(OrderItem.order_id == order.id)
-        order.items = list(session.exec(items_query).all())
+        order_dict = order.model_dump()
+        order_dict["items"] = list(session.exec(items_query).all())
+        result.append(order_dict)
 
-    return orders
+    return result
 
 
 @router.get("/{order_id}", response_model=OrderResponse)
@@ -66,9 +69,10 @@ async def get_order(order_id: int, session: Session = Depends(get_session)):
 
     # Получаем позиции заказа
     items_query = select(OrderItem).where(OrderItem.order_id == order_id)
-    order.items = list(session.exec(items_query).all())
+    order_dict = order.model_dump()
+    order_dict["items"] = list(session.exec(items_query).all())
 
-    return order
+    return order_dict
 
 
 @router.post("/", response_model=OrderResponse, status_code=status.HTTP_201_CREATED)
@@ -340,9 +344,10 @@ async def create_order(
 
     # Получаем позиции для ответа
     items_query = select(OrderItem).where(OrderItem.order_id == order.id)
-    order.items = list(session.exec(items_query).all())
+    order_dict = order.model_dump()
+    order_dict["items"] = list(session.exec(items_query).all())
 
-    return order
+    return order_dict
 
 
 @router.patch("/{order_id}", response_model=OrderResponse)
@@ -370,9 +375,10 @@ async def update_order(
 
     # Получаем позиции для ответа
     items_query = select(OrderItem).where(OrderItem.order_id == order_id)
-    order.items = list(session.exec(items_query).all())
+    order_dict = order.model_dump()
+    order_dict["items"] = list(session.exec(items_query).all())
 
-    return order
+    return order_dict
 
 
 @router.post("/{order_id}/cancel", response_model=OrderResponse)
@@ -406,7 +412,10 @@ async def cancel_order(order_id: int, session: Session = Depends(get_session)):
 
     # Получаем позиции для ответа
     items_query = select(OrderItem).where(OrderItem.order_id == order_id)
-    order.items = list(session.exec(items_query).all())
+    order_dict = order.model_dump()
+    order_dict["items"] = list(session.exec(items_query).all())
+
+    return order_dict
 
 
 # --- IIKO INTEGRATION ---
